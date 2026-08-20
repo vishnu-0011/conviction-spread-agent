@@ -1,6 +1,15 @@
 import unittest
 
-from scripts.preflight import _account_summary, _extract_contracts, _extract_snapshots, _mask
+from decimal import Decimal
+
+from scripts.preflight import (
+    _account_summary,
+    _extract_contracts,
+    _extract_snapshots,
+    _mask,
+    _rank_contracts_near_spot,
+    _spot_price,
+)
 
 
 class PreflightTests(unittest.TestCase):
@@ -32,3 +41,19 @@ class PreflightTests(unittest.TestCase):
             _extract_snapshots({"snapshots": {"SPY1": {"greeks": {"delta": 0.5}}}}),
             {"SPY1": {"greeks": {"delta": 0.5}}},
         )
+
+    def test_extracts_underlying_price_from_current_snapshot_shape(self) -> None:
+        self.assertEqual(
+            _spot_price({"latestTrade": {"p": 769.13}}),
+            Decimal("769.13"),
+        )
+
+    def test_ranks_only_tradable_valid_contracts_nearest_to_spot(self) -> None:
+        contracts = [
+            {"symbol": "FAR", "tradable": True, "strike_price": "800"},
+            {"symbol": "HALTED", "tradable": False, "strike_price": "770"},
+            {"symbol": "NEAR", "tradable": True, "strike_price": "771"},
+            {"symbol": "INVALID", "tradable": True, "strike_price": None},
+        ]
+        ranked = _rank_contracts_near_spot(contracts, Decimal("769"))
+        self.assertEqual([contract["symbol"] for contract in ranked], ["NEAR", "FAR"])

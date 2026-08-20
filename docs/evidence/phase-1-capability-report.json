@@ -1,0 +1,31 @@
+{
+  "checked_at": "2026-08-20T07:59:03-04:00",
+  "mode": "paper-read-only",
+  "account": {
+    "status": "ACTIVE",
+    "account_blocked": false,
+    "trading_blocked": false,
+    "options_approved_level": 3,
+    "options_trading_level": 3,
+    "options_buying_power": "100000"
+  },
+  "market": {
+    "underlying": "SPY",
+    "market_open_during_check": false,
+    "data_feed": "indicative",
+    "underlying_feed": "iex",
+    "contract_dte_window": [14, 35],
+    "strike_window_percent": [-5, 5]
+  },
+  "results": {
+    "near_money_contracts_found": 100,
+    "tradable_contracts_found": 100,
+    "selected_contracts_requested": 20,
+    "snapshots_returned": 14,
+    "snapshots_with_greeks": 14,
+    "snapshots_with_implied_volatility": 14,
+    "critical_failures": [],
+    "ready_for_order_validation": true
+  },
+  "privacy": "Account identifiers, credentials, and request identifiers omitted."
+}

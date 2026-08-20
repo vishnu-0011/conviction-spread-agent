@@ -102,6 +102,43 @@ Configure development paper credentials locally and run the GET-only capability 
 The user creates the development keys locally, confirms `.env` is ignored, and runs
 the GET-only preflight.
 
+## Milestone 1 — Paper platform capability validated
+
+**Date:** 2026-08-20
+**Status:** Complete
+
+### Shipped
+
+- Authenticated a development paper account and verified active/unblocked status,
+  Level 3 options permission, and $100,000 options buying power.
+- Diagnosed an empty selected-snapshot result by comparing near-money selected
+  snapshots, latest quotes, and the underlying-wide option chain.
+- Changed preflight selection from the first metadata records to tradable contracts
+  ranked near the IEX underlying price within a ±5% strike window.
+- Added a reusable read-only option-data diagnostic and regression tests.
+- Published a sanitized capability artifact with no account or request identifiers.
+
+### Evidence
+
+- The corrected preflight has zero critical failures and reports
+  `ready_for_order_validation: true`.
+- 100/100 discovered near-money contracts were explicitly tradable.
+- 14/20 selected contracts returned snapshots; all 14 included Greeks and IV.
+- The chain comparison returned 462 snapshots while the market was closed, ruling out
+  session timing as the root cause.
+- 20 local tests pass.
+
+### Safety and account impact
+
+- Every authenticated request was GET-only.
+- No order, position, account configuration, exercise, or other mutation occurred.
+- Credentials and account identifiers remain outside Git.
+
+### Next task
+
+Implement typed Alpaca account, clock, underlying-snapshot, contract, and option-snapshot
+adapters using sanitized fixtures derived from the validated response shapes.
+
 ## Update format for future tasks
 
 Every completed task should add an entry containing:

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preflight result guide</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+<main>
+  <div class="eyebrow">ConvictionSpread · Quick reference</div>
+  <h1>Read a preflight report</h1>
+
+  <h2>Release decision</h2>
+  <pre><code>"critical_failures": [],
+"ready_for_order_validation": true</code></pre>
+  <p>Both conditions are required before moving toward any order-path validation.</p>
+
+  <h2>Control plane</h2>
+  <ul class="checklist">
+    <li><code>paper_authentication</code>: keys reach the paper host.</li>
+    <li><code>account_active</code>: brokerage status is operational.</li>
+    <li><code>account_unblocked</code>: account and trading flags are clear.</li>
+    <li><code>options_level_3</code>: atomic spreads are permitted.</li>
+    <li><code>options_buying_power</code>: positive paper capacity exists.</li>
+  </ul>
+
+  <h2>Data plane</h2>
+  <ul class="checklist">
+    <li><code>market_clock</code>: decisions can use broker session time.</li>
+    <li><code>underlying_snapshot</code>: spot-relative strikes can be selected.</li>
+    <li><code>option_contract_discovery</code>: active contract metadata exists.</li>
+    <li><code>indicative_option_snapshots</code>: selected contracts have market data.</li>
+    <li><code>greeks_and_iv_observed</code>: analytics exist but remain nullable.</li>
+  </ul>
+
+  <h2>Common interpretation mistakes</h2>
+  <div class="warning"><strong>Contract exists ≠ quote exists.</strong> Contract metadata
+    can be active and tradable even when the selected contract has no usable latest
+    Indicative snapshot.</div>
+  <div class="warning"><strong>Greeks missing ≠ subscription broken.</strong> Alpaca also
+    requires non-zero bid/ask, an underlying SIP trade, time to expiry, and a convergent
+    implied-volatility calculation.</div>
+
+  <footer>Lesson: <a href="../lessons/0003-debug-empty-option-snapshots.html">debug an
+    empty option-snapshot result</a>. Primary sources:
+    <a href="https://docs.alpaca.markets/us/reference/optionsnapshots">Snapshots</a> and
+    <a href="https://docs.alpaca.markets/us/reference/optionchain">Option chain</a>.</footer>
+</main>
+</body>
+</html>

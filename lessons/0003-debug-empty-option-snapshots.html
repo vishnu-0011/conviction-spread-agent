@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 3 — Debug empty option snapshots</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+<main>
+  <div class="eyebrow">ConvictionSpread · Lesson 3 · 10 minutes</div>
+  <h1>Debug empty option snapshots</h1>
+  <p class="lede">A partial preflight failure is evidence. Read which boundary failed
+    before changing accounts, subscriptions, or code.</p>
+
+  <div class="win"><strong>Tangible win:</strong> distinguish the brokerage control
+    plane from the market-data plane and isolate an empty response without placing an
+    order.</div>
+
+  <h2>What the first report proved</h2>
+  <div class="flow">
+    <div><strong>Auth</strong>Passed</div>
+    <div><strong>Level 3</strong>Passed</div>
+    <div><strong>Contracts</strong>Passed</div>
+    <div><strong>Snapshots</strong>Failed</div>
+  </div>
+  <p>Because authentication, permissions, and contract discovery passed, regenerating
+    keys or changing account settings would have addressed the wrong boundary.</p>
+
+  <h2>Competing explanations</h2>
+  <ol>
+    <li><strong>Market timing:</strong> the check ran at 7:00 a.m. ET, before options open.</li>
+    <li><strong>Feed access:</strong> the account might lack Indicative entitlement.</li>
+    <li><strong>Contract sampling:</strong> the first metadata records might not have
+      usable quotes.</li>
+  </ol>
+
+  <h2>The read-only experiment</h2>
+  <p>The diagnostic fetched SPY's IEX reference price, limited strikes to ±5%, ranked
+    contracts by distance from spot, and compared three official data surfaces.</p>
+  <pre><code>Chain snapshots:       462
+Selected snapshots:     14 / 20
+Latest quotes:           14 / 20
+Snapshots with Greeks:   14 / 14
+Snapshots with IV:       14 / 14
+Market open:             false</code></pre>
+
+  <p>Data arrived before the market opened, so timing and entitlement were not the
+    cause. Near-money selection worked; taking the first ten metadata records did not.</p>
+
+  <h2>The correction</h2>
+  <ol>
+    <li>Get the underlying IEX snapshot.</li>
+    <li>Use the broker timestamp to derive the trading date.</li>
+    <li>Constrain strikes to 95–105% of the underlying price.</li>
+    <li>Rank tradable contracts by absolute distance from spot.</li>
+    <li>Probe twenty contracts rather than assuming the first ten are useful.</li>
+  </ol>
+
+  <div class="warning"><strong>General lesson:</strong> “tradable” is a contract/account
+    property. It does not guarantee a current quote, a tight market, Greeks, or a good
+    execution candidate.</div>
+
+  <h2>Retrieval check</h2>
+  <details>
+    <summary>Why did we avoid regenerating API keys?</summary>
+    <p>Authentication and all account checks already passed; the failure was downstream
+      in market-data selection.</p>
+  </details>
+  <details>
+    <summary>What observation ruled out market hours as the root cause?</summary>
+    <p>Near-money snapshots, quotes, Greeks, and IV returned while the broker clock still
+      reported the market closed.</p>
+  </details>
+  <details>
+    <summary>What does an active, tradable contract fail to guarantee?</summary>
+    <p>It does not guarantee a current quote, liquidity, Greeks, or a suitable spread leg.</p>
+  </details>
+
+  <h2>Primary reading</h2>
+  <p><a href="https://docs.alpaca.markets/us/reference/optionsnapshots">Alpaca Option
+    Snapshots</a> defines selected-contract retrieval, while the
+    <a href="https://docs.alpaca.markets/us/reference/optionchain">Option Chain</a>
+    endpoint provides the underlying-wide comparison.</p>
+
+  <footer>Previous: <a href="0002-create-alpaca-paper-keys.html">create paper keys</a>.
+    Reference: <a href="../reference/preflight-result-guide.html">preflight result
+    guide</a>. Ask the agent to explain any field before changing the strategy.</footer>
+</main>
+</body>
+</html>

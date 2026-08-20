@@ -110,6 +110,33 @@ def _as_int(value: object) -> int | None:
         return None
 
 
+def _spot_price(snapshot: dict[str, Any]) -> Decimal | None:
+    """Extract the best available positive price from a stock snapshot."""
+
+    for container_name in ("latestTrade", "latest_trade", "minuteBar", "minute_bar"):
+        container = snapshot.get(container_name)
+        if isinstance(container, dict):
+            for price_name in ("p", "c", "price", "close"):
+                price = _as_decimal(container.get(price_name))
+                if price is not None and price > 0:
+                    return price
+    return None
+
+
+def _rank_contracts_near_spot(
+    contracts: list[dict[str, Any]], spot: Decimal
+) -> list[dict[str, Any]]:
+    """Keep explicitly tradable contracts with valid strikes, nearest first."""
+
+    ranked: list[tuple[Decimal, dict[str, Any]]] = []
+    for contract in contracts:
+        strike = _as_decimal(contract.get("strike_price"))
+        if contract.get("tradable") is True and strike is not None and strike > 0:
+            ranked.append((abs(strike - spot), contract))
+    ranked.sort(key=lambda pair: pair[0])
+    return [contract for _, contract in ranked]
+
+
 def _extract_contracts(payload: dict[str, Any]) -> list[dict[str, Any]]:
     raw = payload.get("option_contracts", payload.get("contracts", []))
     return [item for item in raw if isinstance(item, dict)] if isinstance(raw, list) else []
@@ -185,8 +212,47 @@ def run_preflight(api_key: str, secret_key: str, underlying: str) -> dict[str, A
         )
     )
 
-    start = date.today() + timedelta(days=14)
-    end = date.today() + timedelta(days=35)
+    stock_snapshot, stock_headers = _get_json(
+        MARKET_DATA_HOST,
+        f"/v2/stocks/{underlying}/snapshot",
+        api_key=api_key,
+        secret_key=secret_key,
+        query={"feed": "iex"},
+    )
+    spot = _spot_price(stock_snapshot)
+    checks.append(
+        _check(
+            "underlying_snapshot",
+            spot is not None,
+            f"IEX snapshot returned an underlying reference price for {underlying}."
+            if spot is not None
+            else f"Could not derive a positive IEX reference price for {underlying}.",
+        )
+    )
+    if spot is None:
+        critical_failures = [
+            check["name"] for check in checks if check["critical"] and not check["passed"]
+        ]
+        return {
+            "mode": "paper-read-only",
+            "underlying": underlying,
+            "account": summary,
+            "clock": {
+                "timestamp": clock.get("timestamp"),
+                "is_open": clock.get("is_open"),
+                "next_open": clock.get("next_open"),
+                "next_close": clock.get("next_close"),
+            },
+            "checks": checks,
+            "ready_for_order_validation": False,
+            "critical_failures": critical_failures,
+        }
+
+    broker_date = date.fromisoformat(str(clock["timestamp"])[:10])
+    start = broker_date + timedelta(days=14)
+    end = broker_date + timedelta(days=35)
+    lower_strike = (spot * Decimal("0.95")).quantize(Decimal("0.01"))
+    upper_strike = (spot * Decimal("1.05")).quantize(Decimal("0.01"))
     contracts_payload, contract_headers = _get_json(
         PAPER_API_HOST,
         "/v2/options/contracts",
@@ -197,21 +263,23 @@ def run_preflight(api_key: str, secret_key: str, underlying: str) -> dict[str, A
             "status": "active",
             "expiration_date_gte": start.isoformat(),
             "expiration_date_lte": end.isoformat(),
+            "strike_price_gte": str(lower_strike),
+            "strike_price_lte": str(upper_strike),
             "limit": "100",
         },
     )
     contracts = _extract_contracts(contracts_payload)
-    tradable = [contract for contract in contracts if contract.get("tradable") is True]
+    tradable = _rank_contracts_near_spot(contracts, spot)
     checks.append(
         _check(
             "option_contract_discovery",
             bool(tradable),
-            f"Found {len(contracts)} contracts and {len(tradable)} explicitly tradable contracts "
-            f"for {underlying} in the 14–35 DTE window.",
+            f"Found {len(contracts)} near-money contracts and {len(tradable)} explicitly "
+            f"tradable contracts for {underlying} in the 14–35 DTE window.",
         )
     )
 
-    symbols = [str(contract.get("symbol")) for contract in tradable[:10] if contract.get("symbol")]
+    symbols = [str(contract.get("symbol")) for contract in tradable[:20] if contract.get("symbol")]
     snapshots: dict[str, dict[str, Any]] = {}
     snapshot_headers: dict[str, str] = {}
     if symbols:
@@ -246,7 +314,13 @@ def run_preflight(api_key: str, secret_key: str, underlying: str) -> dict[str, A
     )
 
     rate_headers: dict[str, str] = {}
-    for source in (account_headers, clock_headers, contract_headers, snapshot_headers):
+    for source in (
+        account_headers,
+        clock_headers,
+        stock_headers,
+        contract_headers,
+        snapshot_headers,
+    ):
         for key, value in source.items():
             if key.startswith("x-ratelimit-") or key in {"retry-after", "x-request-id"}:
                 rate_headers[key] = value
@@ -264,6 +338,8 @@ def run_preflight(api_key: str, secret_key: str, underlying: str) -> dict[str, A
             "next_open": clock.get("next_open"),
             "next_close": clock.get("next_close"),
         },
+        "underlying_reference_price": str(spot),
+        "strike_window": {"from": str(lower_strike), "to": str(upper_strike)},
         "contract_window": {"from": start.isoformat(), "to": end.isoformat()},
         "observed_headers": rate_headers,
         "checks": checks,

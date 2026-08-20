@@ -18,8 +18,8 @@ switch have final authority.
 | Phase | Status | Evidence |
 |---|---|---|
 | Product, research, and safety foundation | Complete | 18 passing tests |
-| Read-only Alpaca capability preflight | Ready | Waiting for development paper credentials |
-| Data and feature pipeline | Planned | Starts after preflight |
+| Read-only Alpaca capability preflight | Complete | Level 3 and near-money data validated |
+| Data and feature pipeline | Next | Typed adapters and fixtures |
 | Strategy simulation | Planned | Baselines and walk-forward evaluation |
 | Autonomous execution and MCP | Planned | Paper-only, gated rollout |
 | Dashboard, burn-in, and submission | Planned | Judge-facing evidence and demo |

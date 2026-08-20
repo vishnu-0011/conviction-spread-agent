@@ -36,7 +36,8 @@ python scripts/preflight.py --underlying SPY --output data/private/preflight.jso
 - The account is active/unblocked with positive options buying power.
 - `options_trading_level` is at least 3.
 - Alpaca's clock is reachable.
-- Tradable SPY contracts exist in the explicit 14–35 DTE window.
+- An IEX underlying snapshot provides a reference price.
+- Tradable SPY contracts exist in a ±5% strike and explicit 14–35 DTE window.
 - The account can retrieve Indicative option snapshots.
 - It reports, but does not require, observed Greeks and IV because Alpaca documents
   those values as nullable.
@@ -54,3 +55,14 @@ form will call the account ID.
 
 Those are separate controlled tests. We will not add the first POST request until the
 read-only report passes and the order harness has a second explicit enablement gate.
+
+## Validated result — 2026-08-20
+
+The first version sampled the first ten contract metadata records and received no
+snapshots. A read-only comparison proved that account access and the feed were healthy:
+the near-money chain returned 462 snapshots, while 14 of 20 price-ranked contracts
+returned quotes, Greeks, and IV before the market opened.
+
+The preflight now obtains an IEX reference price, constrains strikes to ±5%, and ranks
+tradable contracts by distance from spot. The corrected report has no critical failures
+and sets `ready_for_order_validation` to `true`.

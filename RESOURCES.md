@@ -16,6 +16,11 @@
 - [Alpaca: Market Data Plans](https://docs.alpaca.markets/us/docs/about-market-data-api)
   Documents Indicative versus OPRA access and plan limits. Use for: feed labeling,
   data-quality assumptions, and rate-aware design.
+- [Alpaca API: Option Snapshots](https://docs.alpaca.markets/us/reference/optionsnapshots)
+  Latest trade, quote, and Greeks for selected contracts. Use for: targeted data probes.
+- [Alpaca API: Option Chain](https://docs.alpaca.markets/us/reference/optionchain)
+  Underlying-wide option snapshots with strike and expiration filters. Use for: chain
+  discovery and comparison with selected-contract responses.
 - [Alpaca: Trading MCP Server](https://docs.alpaca.markets/us/docs/alpaca-mcp-server)
   Official MCP setup and capabilities. Use for: the required hackathon integration.
 - [Local: Alpaca platform research](docs/research/alpaca-platform-research.md)
