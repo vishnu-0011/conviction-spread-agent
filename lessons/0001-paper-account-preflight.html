@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 1 — Prove the broker before the strategy</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+<main>
+  <div class="eyebrow">ConvictionSpread · Lesson 1 · 10 minutes</div>
+  <h1>Prove the broker before the strategy</h1>
+  <p class="lede">Phase 1 answers a deliberately boring but decisive question: does
+    the actual development paper account expose everything our spread agent assumes?</p>
+
+  <div class="win"><strong>Tangible win:</strong> produce a masked capability report
+    proving account health, Level 3 permission, contract discovery, and option snapshot
+    access—without sending a single order request.</div>
+
+  <h2>The four boundaries</h2>
+  <div class="flow">
+    <div><strong>1 · Account</strong>Active, unblocked, Level 3, buying power.</div>
+    <div><strong>2 · Session</strong>Broker clock, open state, next open and close.</div>
+    <div><strong>3 · Contracts</strong>Tradable SPY options in an explicit DTE window.</div>
+    <div><strong>4 · Data</strong>Indicative snapshots, quotes, nullable Greeks and IV.</div>
+  </div>
+
+  <p>Documentation describes the platform in general. It cannot prove the permissions,
+    subscription, or response fields of our specific account. That is why this phase is
+    an integration test rather than more strategy design.</p>
+
+  <h2>Your part</h2>
+  <ol>
+    <li>Use a development paper account—not the fresh final judging account.</li>
+    <li>Copy <code>.env.example</code> to <code>.env</code>.</li>
+    <li>Add the paper API key and secret locally. Never paste either into chat.</li>
+    <li>Keep paper mode true, execution disabled, and dry-run true.</li>
+  </ol>
+
+  <pre><code>Copy-Item .env.example .env
+# Edit .env locally, then:
+python scripts/preflight.py --underlying SPY `
+  --output data/private/preflight.json</code></pre>
+
+  <div class="warning"><strong>Safety boundary:</strong> the preflight source contains
+    GET requests only. It cannot submit, replace, cancel, exercise, or close an order.
+    Its saved report is gitignored and masks both account identifiers.</div>
+
+  <h2>What passing means</h2>
+  <ul class="checklist">
+    <li>The credentials authenticate against the paper host.</li>
+    <li>The account is active and neither trading-blocked nor account-blocked.</li>
+    <li>The configured options level is 3 or higher.</li>
+    <li>Options buying power is present and positive.</li>
+    <li>Tradable SPY contracts exist between 14 and 35 DTE.</li>
+    <li>Indicative option snapshots return successfully.</li>
+  </ul>
+
+  <p>Greeks and implied volatility are informative but non-critical in this check.
+    Alpaca documents them as nullable, so missing values activate our fallback rather
+    than becoming fake zeroes.</p>
+
+  <h2>Retrieval check</h2>
+  <details>
+    <summary>Why do we use a development account first?</summary>
+    <p>Experiments and mistakes must not pollute the fresh account whose activity judges
+      will evaluate.</p>
+  </details>
+  <details>
+    <summary>Why is Level 3 a release gate?</summary>
+    <p>Our bull-call and bear-put spreads are multi-leg strategies; lower permission
+      levels cannot support the intended atomic MLeg execution.</p>
+  </details>
+  <details>
+    <summary>Why is a successful snapshot not proof of realistic execution?</summary>
+    <p>Basic access uses Alpaca Indicative data, while paper fills are simulated. We must
+      label the feed and avoid treating paper results as live execution evidence.</p>
+  </details>
+
+  <h2>What I build after it passes</h2>
+  <p>I will convert the observed responses into typed Alpaca adapters, add recorded
+    fixtures for missing Greeks and sparse quotes, and create a deterministic chain
+    selector. Order submission will remain disabled.</p>
+
+  <h2>Primary reading</h2>
+  <p><a href="https://docs.alpaca.markets/us/docs/paper-trading">Alpaca Paper Trading</a>
+    explains the simulation boundary. Pair it with
+    <a href="https://docs.alpaca.markets/us/docs/options-trading">Alpaca Options
+    Trading</a> for permissions and lifecycle rules.</p>
+
+  <footer>When anything is unclear, ask the agent before changing account settings.
+    Next lesson: reading an option chain without confusing contracts, quotes, IV, and
+    Greeks.</footer>
+</main>
+</body>
+</html>

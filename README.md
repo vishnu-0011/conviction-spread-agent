@@ -42,6 +42,7 @@ See the chronological [build progress](docs/progress.md) and the complete
 - `docs/strategy-spec.md` — provisional strategy and options mechanics.
 - `docs/research/alpaca-platform-research.md` — cited official-platform research.
 - `docs/progress.md` — judge-facing build journal and milestone evidence.
+- `lessons/` — short, project-linked lessons for understanding and defending the build.
 - `src/conviction_spread_agent/` — domain and risk-policy foundation.
 - `tests/` — dependency-free unit tests for safety-critical calculations.
 

@@ -56,6 +56,28 @@ unredacted broker responses.
 Run the read-only development-account preflight, archive a masked capability report,
 and implement typed Alpaca adapters from the observed response shapes.
 
+## Task 1.1 — Phase 1 validation plan
+
+**Date:** 2026-08-20
+**Status:** Complete
+
+### Shipped
+
+- Established a learning mission tied directly to building and defending the agent.
+- Curated first-party Alpaca learning resources and an official community channel.
+- Added a short, printable lesson explaining the read-only account preflight.
+- Defined the exact Phase 1 pass criteria and the boundary before order validation.
+
+### Verification and safety impact
+
+- The lesson points to the existing GET-only preflight and keeps credentials local.
+- No broker request was run and no execution setting changed.
+- Project tests remain the release gate; this documentation task changes no runtime code.
+
+### Next task
+
+Configure development paper credentials locally and run the GET-only capability report.
+
 ## Update format for future tasks
 
 Every completed task should add an entry containing:
