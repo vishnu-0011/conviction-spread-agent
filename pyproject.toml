@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "conviction-spread-agent"
+version = "0.1.0"
+description = "An explainable, risk-gated Alpaca paper options agent"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Hackathon Team" }]
+dependencies = ["alpaca-py==0.44.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
