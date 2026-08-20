@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alpaca paper-key checklist</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+<main>
+  <div class="eyebrow">ConvictionSpread · Quick reference</div>
+  <h1>Alpaca paper-key checklist</h1>
+
+  <h2>Dashboard</h2>
+  <ul class="checklist">
+    <li>Sign in at <a href="https://app.alpaca.markets/account/login">app.alpaca.markets</a>.</li>
+    <li>Confirm email and activate MFA if this is a new account.</li>
+    <li>Use the upper-left account selector and choose <strong>Paper Trading</strong>.</li>
+    <li>Open the Home/API section and locate the <strong>API Keys</strong> panel.</li>
+    <li>Select <strong>Generate New Key</strong> or <strong>Generate API Keys</strong>.</li>
+    <li>Copy both values immediately; the secret is shown only once.</li>
+  </ul>
+
+  <h2>Local file</h2>
+  <pre><code>Copy-Item .env.example .env
+# Open .env in your editor and replace only the two empty values.</code></pre>
+
+  <pre><code>ALPACA_API_KEY=PASTE_KEY_ID_HERE
+ALPACA_SECRET_KEY=PASTE_SECRET_HERE
+ALPACA_PAPER=true
+CSA_EXECUTION_ENABLED=false
+CSA_DRY_RUN=true</code></pre>
+
+  <h2>Safety checks</h2>
+  <pre><code>git check-ignore .env
+python scripts/preflight.py --underlying SPY `
+  --output data/private/preflight.json</code></pre>
+
+  <div class="warning"><strong>Never:</strong> paste credentials into chat, commit
+    <code>.env</code>, use live keys, include keys in screenshots, or regenerate them
+    without updating every local integration.</div>
+
+  <footer>Primary source:
+    <a href="https://alpaca.markets/learn/start-paper-trading">Alpaca — How to Start
+    Paper Trading</a>. Ask the agent if your dashboard labels differ.</footer>
+</main>
+</body>
+</html>

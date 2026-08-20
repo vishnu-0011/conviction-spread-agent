@@ -2,6 +2,9 @@
 
 ## Knowledge
 
+- [Alpaca: How to Start Paper Trading](https://alpaca.markets/learn/start-paper-trading)
+  Current first-party click path for selecting a paper account, generating API keys,
+  and verifying a connection. Use for: initial development-account setup.
 - [Alpaca: Paper Trading](https://docs.alpaca.markets/us/docs/paper-trading)
   First-party explanation of the simulator and its differences from live execution.
   Use for: interpreting paper fills and describing limitations to judges.

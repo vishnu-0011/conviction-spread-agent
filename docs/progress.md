@@ -78,6 +78,30 @@ and implement typed Alpaca adapters from the observed response shapes.
 
 Configure development paper credentials locally and run the GET-only capability report.
 
+## Task 1.2 — Paper-key setup guide
+
+**Date:** 2026-08-20
+**Status:** Complete
+
+### Shipped
+
+- Verified the current paper-account key workflow against Alpaca's March 2026 guide.
+- Added a click-by-click lesson covering signup, MFA, paper-account selection, key
+  generation, one-time secret handling, local `.env` storage, and Git verification.
+- Added a printable paper-key security checklist.
+
+### Verification and safety impact
+
+- The guide uses a development paper account and reserves the fresh judging account.
+- It requires `git check-ignore .env` before authenticated testing.
+- No credentials were created, read, stored, or committed by the project.
+- No broker request or runtime behavior changed.
+
+### Next task
+
+The user creates the development keys locally, confirms `.env` is ignored, and runs
+the GET-only preflight.
+
 ## Update format for future tasks
 
 Every completed task should add an entry containing:

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 2 — Create Alpaca paper API keys safely</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+<main>
+  <div class="eyebrow">ConvictionSpread · Lesson 2 · 8 minutes</div>
+  <h1>Create paper API keys safely</h1>
+  <p class="lede">Generate credentials for a development paper account, store them
+    locally, and verify that Git cannot see the secret file.</p>
+
+  <div class="win"><strong>Tangible win:</strong> a local <code>.env</code> containing
+    paper credentials, ignored by Git and ready for the GET-only preflight.</div>
+
+  <h2>1 · Create or enter the paper account</h2>
+  <ol>
+    <li>Open <a href="https://app.alpaca.markets/account/login">Alpaca login</a>.</li>
+    <li>If new, choose sign up, enter your email/password, confirm the verification
+      email, and activate MFA when prompted.</li>
+    <li>After login, open the account selector in the upper-left corner.</li>
+    <li>Select <strong>Paper Trading</strong>. Do not select a live account.</li>
+  </ol>
+
+  <p>Use this as the development account. The hackathon's fresh judging account is
+    created only after the agent is stable.</p>
+
+  <h2>2 · Generate the credential pair</h2>
+  <ol>
+    <li>From the selected paper account, open <strong>Home</strong> or the
+      <strong>API</strong> section.</li>
+    <li>Find the card labeled <strong>API Keys</strong> or
+      <strong>Trading API Keys</strong>.</li>
+    <li>Click <strong>Generate New Key</strong> / <strong>Generate API Keys</strong>.</li>
+    <li>Copy the displayed <strong>API Key ID</strong>.</li>
+    <li>Copy the displayed <strong>Secret Key</strong> before closing the dialog.</li>
+  </ol>
+
+  <div class="warning"><strong>The secret is one-time-visible.</strong> If it is lost,
+    generate a new pair. Alpaca invalidates the old pair, so every integration using it
+    must then be updated.</div>
+
+  <h2>3 · Store them locally</h2>
+  <p>From <code>C:\Project\alpaca-hackathon</code>:</p>
+  <pre><code>Copy-Item .env.example .env</code></pre>
+
+  <p>Open <code>.env</code> in your editor. Replace only the empty values:</p>
+  <pre><code>ALPACA_API_KEY=PASTE_THE_API_KEY_ID_HERE
+ALPACA_SECRET_KEY=PASTE_THE_SECRET_KEY_HERE
+ALPACA_PAPER=true
+
+CSA_EXECUTION_ENABLED=false
+CSA_DRY_RUN=true</code></pre>
+
+  <p>Do not add quotation marks, spaces around <code>=</code>, or a second copy of either
+    variable. Save the file.</p>
+
+  <h2>4 · Prove Git ignores it</h2>
+  <pre><code>git check-ignore .env</code></pre>
+  <p>The expected output is exactly <code>.env</code>. Then run:</p>
+  <pre><code>git status --short</code></pre>
+  <p>The secret file must not appear in the status output.</p>
+
+  <h2>5 · Run the safe connectivity check</h2>
+  <pre><code>python scripts/preflight.py --underlying SPY `
+  --output data/private/preflight.json</code></pre>
+  <p>This makes GET requests only and prints masked identifiers. A 401 normally means the
+    key and secret are mismatched, regenerated, or belong to a different environment.</p>
+
+  <h2>Retrieval check</h2>
+  <details>
+    <summary>Which account should generate these first keys?</summary>
+    <p>A development paper account, not a live account and not the fresh judging account.</p>
+  </details>
+  <details>
+    <summary>What must you do before closing the key dialog?</summary>
+    <p>Copy the Secret Key because Alpaca displays it only once.</p>
+  </details>
+  <details>
+    <summary>What proves the credentials are not staged for Git?</summary>
+    <p><code>git check-ignore .env</code> outputs <code>.env</code>, while
+      <code>git status --short</code> does not list it.</p>
+  </details>
+
+  <h2>Primary reading</h2>
+  <p><a href="https://alpaca.markets/learn/start-paper-trading">Alpaca — How to Start
+    Paper Trading</a> provides the current first-party dashboard workflow.</p>
+
+  <footer>Previous: <a href="0001-paper-account-preflight.html">Prove the broker before
+    the strategy</a>. Quick reference:
+    <a href="../reference/alpaca-paper-key-checklist.html">paper-key checklist</a>.
+    Ask the agent if your dashboard uses different labels.</footer>
+</main>
+</body>
+</html>
