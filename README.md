@@ -10,8 +10,8 @@ with defined-risk vertical debit spreads. A structured AI thesis may recommend a
 trade, but deterministic validation, portfolio limits, and an execution kill
 switch have final authority.
 
-> Current milestone: Phase 0 complete; Phase 1 read-only Alpaca preflight ready.
-> No Alpaca order execution is implemented or enabled.
+> Current milestone: Phase 0–1 complete; Phase 2 data pipeline and Phase 3 walk-forward
+> simulation implemented with fixture-backed tests. No Alpaca order execution is enabled.
 
 ## Hackathon progress
 
@@ -19,8 +19,8 @@ switch have final authority.
 |---|---|---|
 | Product, research, and safety foundation | Complete | 18 passing tests |
 | Read-only Alpaca capability preflight | Complete | Level 3 and near-money data validated |
-| Data and feature pipeline | Next | Typed adapters and fixtures |
-| Strategy simulation | Planned | Baselines and walk-forward evaluation |
+| Data and feature pipeline | Complete | Typed bar adapters and deterministic features |
+| Strategy simulation | Complete | Baselines, walk-forward, and fixture report |
 | Autonomous execution and MCP | Planned | Paper-only, gated rollout |
 | Dashboard, burn-in, and submission | Planned | Judge-facing evidence and demo |
 
@@ -57,6 +57,12 @@ Run the read-only paper-account preflight after configuring a local `.env`:
 
 ```powershell
 python scripts/preflight.py --underlying SPY
+```
+
+Run the fixture-backed walk-forward simulation (no API keys required):
+
+```powershell
+python scripts/run_simulation.py
 ```
 
 ## Safety notice

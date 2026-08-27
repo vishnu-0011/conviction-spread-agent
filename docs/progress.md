@@ -139,6 +139,68 @@ the GET-only preflight.
 Implement typed Alpaca account, clock, underlying-snapshot, contract, and option-snapshot
 adapters using sanitized fixtures derived from the validated response shapes.
 
+## Milestone 2 — Data and feature pipeline
+
+**Date:** 2026-08-24
+**Status:** Complete
+
+### Shipped
+
+- Added typed Alpaca bar adapters and immutable `Bar` / `BarSeries` records.
+- Added a deterministic feature engine with trend, realized volatility, relative
+  volume, ATR, relative strength, and regime classification.
+- Enforced look-ahead-free feature computation with versioned `FeatureSnapshot`
+  records that include source bar timestamps for replay.
+
+### Evidence
+
+- Feature replay tests confirm identical snapshots produce identical features.
+- Missing history raises explicit errors instead of producing guessed values.
+- 35 total unit tests pass.
+
+### Safety impact
+
+- No broker requests were added.
+- Feature code is read-only and deterministic.
+
+### Next task
+
+Run walk-forward simulation against baselines and archive the report artifact.
+
+## Milestone 3 — Strategy research and simulation
+
+**Date:** 2026-08-24
+**Status:** Complete
+
+### Shipped
+
+- Added conservative bid/ask fill modeling with slippage, fees, and deterministic
+  entry rejection handling.
+- Implemented three baselines: buy-and-hold, random-direction, and underlying
+  momentum, plus the conviction spread strategy signal.
+- Built walk-forward evaluation with train / validation / test fold boundaries.
+- Added performance metrics: net P&L, drawdown, win rate, payoff ratio, profit
+  factor, rejection rate, and P&L per unit of risk.
+- Added a fixture-backed simulation script and archived walk-forward evidence.
+
+### Evidence
+
+- `python scripts/run_simulation.py` runs without API credentials.
+- Walk-forward report saved to `docs/evidence/phase-3-walkforward-report.json`.
+- 35 unit tests pass including simulation and walk-forward integration tests.
+
+### Honest limitations
+
+- Spread outcomes use a simplified intrinsic-value model with synthetic quotes;
+  live Alpaca option chains will replace this when credentials are available.
+- The fixture is a monotonic SPY uptrend; real mixed-regime data is required
+  before treating results as out-of-sample proof.
+
+### Next task
+
+Implement spread construction and the deterministic risk engine (Phase 4), then
+connect live Alpaca historical bars once API keys are configured.
+
 ## Update format for future tasks
 
 Every completed task should add an entry containing:

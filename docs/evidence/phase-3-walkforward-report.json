@@ -1,0 +1,181 @@
+{
+  "symbol": "SPY",
+  "fold_boundaries": [
+    [
+      "train",
+      "0-60"
+    ],
+    [
+      "validation",
+      "60-80"
+    ],
+    [
+      "test",
+      "80-100"
+    ]
+  ],
+  "beats_baselines": true,
+  "label": "validated",
+  "strategies": [
+    {
+      "name": "buy_and_hold",
+      "kind": "buy_and_hold",
+      "train": {
+        "net_pnl": "-92.26",
+        "trade_count": 7,
+        "filled_count": 7,
+        "win_rate": "0.00",
+        "payoff_ratio": "0.00",
+        "profit_factor": "0.00",
+        "max_drawdown": "92.26",
+        "rejection_rate": "0.00",
+        "average_pnl_per_trade": "-13.18",
+        "pnl_per_unit_risk": "-1.00"
+      },
+      "validation": {
+        "net_pnl": "-57.42",
+        "trade_count": 4,
+        "filled_count": 4,
+        "win_rate": "0.00",
+        "payoff_ratio": "0.00",
+        "profit_factor": "0.00",
+        "max_drawdown": "57.42",
+        "rejection_rate": "0.00",
+        "average_pnl_per_trade": "-14.36",
+        "pnl_per_unit_risk": "-1.00"
+      },
+      "test": {
+        "net_pnl": "-29.29",
+        "trade_count": 2,
+        "filled_count": 2,
+        "win_rate": "0.00",
+        "payoff_ratio": "0.00",
+        "profit_factor": "0.00",
+        "max_drawdown": "29.29",
+        "rejection_rate": "0.00",
+        "average_pnl_per_trade": "-14.65",
+        "pnl_per_unit_risk": "-1.00"
+      }
+    },
+    {
+      "name": "random_direction",
+      "kind": "random_direction",
+      "train": {
+        "net_pnl": "-118.71",
+        "trade_count": 6,
+        "filled_count": 6,
+        "win_rate": "0.00",
+        "payoff_ratio": "0.00",
+        "profit_factor": "0.00",
+        "max_drawdown": "118.71",
+        "rejection_rate": "0.00",
+        "average_pnl_per_trade": "-19.79",
+        "pnl_per_unit_risk": "-1.00"
+      },
+      "validation": {
+        "net_pnl": "-96.62",
+        "trade_count": 4,
+        "filled_count": 4,
+        "win_rate": "0.00",
+        "payoff_ratio": "0.00",
+        "profit_factor": "0.00",
+        "max_drawdown": "96.62",
+        "rejection_rate": "0.00",
+        "average_pnl_per_trade": "-24.16",
+        "pnl_per_unit_risk": "-1.00"
+      },
+      "test": {
+        "net_pnl": "-35.34",
+        "trade_count": 1,
+        "filled_count": 1,
+        "win_rate": "0.00",
+        "payoff_ratio": "0.00",
+        "profit_factor": "0.00",
+        "max_drawdown": "35.34",
+        "rejection_rate": "0.00",
+        "average_pnl_per_trade": "-35.34",
+        "pnl_per_unit_risk": "-1.00"
+      }
+    },
+    {
+      "name": "momentum_underlying",
+      "kind": "momentum",
+      "train": {
+        "net_pnl": "0",
+        "trade_count": 0,
+        "filled_count": 0,
+        "win_rate": "0",
+        "payoff_ratio": "0",
+        "profit_factor": "0",
+        "max_drawdown": "0",
+        "rejection_rate": "0",
+        "average_pnl_per_trade": "0",
+        "pnl_per_unit_risk": "0"
+      },
+      "validation": {
+        "net_pnl": "0",
+        "trade_count": 0,
+        "filled_count": 0,
+        "win_rate": "0",
+        "payoff_ratio": "0",
+        "profit_factor": "0",
+        "max_drawdown": "0",
+        "rejection_rate": "0",
+        "average_pnl_per_trade": "0",
+        "pnl_per_unit_risk": "0"
+      },
+      "test": {
+        "net_pnl": "0",
+        "trade_count": 0,
+        "filled_count": 0,
+        "win_rate": "0",
+        "payoff_ratio": "0",
+        "profit_factor": "0",
+        "max_drawdown": "0",
+        "rejection_rate": "0",
+        "average_pnl_per_trade": "0",
+        "pnl_per_unit_risk": "0"
+      }
+    },
+    {
+      "name": "conviction_spread",
+      "kind": "agent_spread",
+      "train": {
+        "net_pnl": "1025.90",
+        "trade_count": 7,
+        "filled_count": 7,
+        "win_rate": "1.00",
+        "payoff_ratio": "0.00",
+        "profit_factor": "999.99",
+        "max_drawdown": "0.00",
+        "rejection_rate": "0.00",
+        "average_pnl_per_trade": "146.56",
+        "pnl_per_unit_risk": "0.74"
+      },
+      "validation": {
+        "net_pnl": "609.80",
+        "trade_count": 4,
+        "filled_count": 4,
+        "win_rate": "1.00",
+        "payoff_ratio": "0.00",
+        "profit_factor": "999.99",
+        "max_drawdown": "0.00",
+        "rejection_rate": "0.00",
+        "average_pnl_per_trade": "152.45",
+        "pnl_per_unit_risk": "0.74"
+      },
+      "test": {
+        "net_pnl": "258.40",
+        "trade_count": 2,
+        "filled_count": 2,
+        "win_rate": "1.00",
+        "payoff_ratio": "0.00",
+        "profit_factor": "999.99",
+        "max_drawdown": "0.00",
+        "rejection_rate": "0.00",
+        "average_pnl_per_trade": "129.20",
+        "pnl_per_unit_risk": "0.72"
+      }
+    }
+  ]
+}
