@@ -1,0 +1,46 @@
+{
+  "artifact": "phase-4-risk-lifecycle-report",
+  "as_of": "2026-09-01",
+  "broker_writes": false,
+  "execution_enabled": false,
+  "phase": 4,
+  "status": "complete",
+  "verification": {
+    "compileall_passed": true,
+    "phase_4_tests": 20,
+    "total_tests": 55,
+    "unit_tests_passed": true
+  },
+  "delivered": {
+    "alpaca_option_payload_normalization": true,
+    "delta_first_spread_selection": true,
+    "moneyness_fallback_for_missing_greeks": true,
+    "conservative_executable_debit": true,
+    "options_buying_power_gate": true,
+    "opening_and_closing_window_gates": true,
+    "duplicate_decision_gate": true,
+    "restart_safe_event_replay": true,
+    "partial_fill_and_cancel_handling": true,
+    "broker_reconciliation_checks": true
+  },
+  "fail_closed_scenarios": [
+    "missing or malformed option inputs",
+    "non-tradable contract",
+    "stale or wide quotes",
+    "zero or negative executable debit",
+    "debit at or above spread width",
+    "observed deltas outside target bands",
+    "missing options buying power",
+    "entry during opening or closing exclusion windows",
+    "duplicate decision id",
+    "illegal lifecycle transition",
+    "broker filled quantity behind local state",
+    "terminal failure while exposure remains open"
+  ],
+  "limitations": [
+    "Live scheduled shadow scanning is not connected yet.",
+    "No Alpaca order submission, cancellation, replacement, exercise, or close path exists.",
+    "Controlled paper validation of broker MLeg lifecycle behavior remains required."
+  ],
+  "next_phase": "Autonomous shadow agent plus Alpaca MCP/CLI integration"
+}

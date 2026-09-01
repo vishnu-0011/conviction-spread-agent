@@ -198,8 +198,37 @@ Run walk-forward simulation against baselines and archive the report artifact.
 
 ### Next task
 
-Implement spread construction and the deterministic risk engine (Phase 4), then
-connect live Alpaca historical bars once API keys are configured.
+Implement deterministic spread construction and the final risk/lifecycle boundary.
+
+## Milestone 4 — spread construction and deterministic lifecycle
+
+**Date:** 2026-09-02
+**Status:** Complete
+
+### Shipped
+
+- Added typed normalization for tradable Alpaca option contracts and quote snapshots.
+- Added deterministic bull-call and bear-put selection with DTE, quote, width, debit,
+  delta-band, and missing-Greeks fallback rules.
+- Added buying-power, duplicate-decision, and market-session admission gates.
+- Added replayable partial-fill, cancellation, restart, close, and reconciliation states.
+
+### Evidence
+
+- 55 tests pass; 20 cover Phase 4.
+- Python compilation passes for scripts, source, and tests.
+- Sanitized evidence: `docs/evidence/phase-4-risk-lifecycle-report.json`.
+
+### Safety and limitations
+
+- No broker mutation or order-submission path was added.
+- Partial exposure cannot be forgotten after cancellation or software failure.
+- Selection uses normalized fixtures; live shadow scanning and controlled Alpaca MLeg
+  lifecycle validation remain Phase 5 work.
+
+### Next task
+
+Build the Phase 5 shadow agent and Alpaca MCP/CLI integration with submission disabled.
 
 ## Update format for future tasks
 

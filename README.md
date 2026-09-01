@@ -10,8 +10,9 @@ with defined-risk vertical debit spreads. A structured AI thesis may recommend a
 trade, but deterministic validation, portfolio limits, and an execution kill
 switch have final authority.
 
-> Current milestone: Phase 0–1 complete; Phase 2 data pipeline and Phase 3 walk-forward
-> simulation implemented with fixture-backed tests. No Alpaca order execution is enabled.
+> Current milestone: Phases 0–4 complete through deterministic option normalization,
+> spread construction, final risk admission, and a replayable broker lifecycle. No
+> Alpaca order execution is enabled.
 
 ## Hackathon progress
 
@@ -21,6 +22,7 @@ switch have final authority.
 | Read-only Alpaca capability preflight | Complete | Level 3 and near-money data validated |
 | Data and feature pipeline | Complete | Typed bar adapters and deterministic features |
 | Strategy simulation | Complete | Baselines, walk-forward, and fixture report |
+| Spread construction and risk lifecycle | Complete | 55 tests; no broker writes |
 | Autonomous execution and MCP | Planned | Paper-only, gated rollout |
 | Dashboard, burn-in, and submission | Planned | Judge-facing evidence and demo |
 
