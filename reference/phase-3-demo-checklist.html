@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ConvictionSpread Phase 3 demo checklist</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+<main>
+  <div class="eyebrow">ConvictionSpread · Quick reference</div>
+  <h1>Phase 3 demo checklist</h1>
+  <p class="lede">The shortest safe path from a clean checkout to LinkedIn-ready
+    evidence.</p>
+
+  <h2>Run</h2>
+  <pre><code>cd C:\Project\alpaca-hackathon
+$env:PYTHONPATH = "src"
+python -m unittest discover -s tests -v
+python scripts/run_simulation.py</code></pre>
+
+  <h2>Capture</h2>
+  <ul class="checklist">
+    <li>Test footer: <code>Ran 35 tests</code> and <code>OK</code></li>
+    <li>Simulation: train / validation / test folds</li>
+    <li>Comparison: four strategies</li>
+    <li>Label: synthetic fixture, not Alpaca paper P&amp;L</li>
+  </ul>
+
+  <h2>Say</h2>
+  <p>“We completed a deterministic, fixture-backed walk-forward research pipeline and
+    verified it with 35 automated tests. The current results are engineering evidence,
+    not live or Alpaca paper-account performance.”</p>
+
+  <h2>Do not expose</h2>
+  <ul class="checklist">
+    <li><code>.env</code>, API keys, or secret keys</li>
+    <li>Full account identifiers</li>
+    <li>Synthetic P&amp;L without its limitation</li>
+  </ul>
+
+  <footer>Full walkthrough: <a href="../lessons/0004-run-and-showcase-walkforward.html">run
+    and showcase the walk-forward simulation</a>.</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 4 — Run and showcase the walk-forward simulation</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+<main>
+  <div class="eyebrow">ConvictionSpread · Lesson 4 · 10 minutes</div>
+  <h1>Run it. Prove it. Describe it honestly.</h1>
+  <p class="lede">Create two clean pieces of evidence for LinkedIn: one showing that
+    the software is tested, and one showing that the research pipeline runs.</p>
+
+  <div class="win"><strong>Tangible win:</strong> leave this lesson with two safe
+    screenshots that demonstrate engineering progress without presenting synthetic
+    results as real Alpaca paper-trading performance.</div>
+
+  <h2>1. Open the project in PowerShell</h2>
+  <pre><code>cd C:\Project\alpaca-hackathon
+git branch --show-current
+git status --short --branch</code></pre>
+  <p>The branch should be <code>main</code>. The status should show
+    <code>main...origin/main</code> with no modified files.</p>
+
+  <h2>2. Run all automated tests</h2>
+  <pre><code>$env:PYTHONPATH = "src"
+python -m unittest discover -s tests -v</code></pre>
+  <p>Let the command finish, then capture the final lines:</p>
+  <pre><code>Ran 35 tests
+
+OK</code></pre>
+  <p>This is the strongest first screenshot. It proves the data parser, feature engine,
+    risk rules, order payloads, simulation, and walk-forward integration all pass their
+    current automated checks.</p>
+
+  <h2>3. Run the fixture-backed simulation</h2>
+  <pre><code>python scripts/run_simulation.py</code></pre>
+  <p>The command prints the complete JSON report. It compares four strategies across
+    train, validation, and test folds and reports P&amp;L, drawdown, win rate, payoff
+    ratio, profit factor, rejection rate, and P&amp;L per unit of risk.</p>
+
+  <h2>4. Print a screenshot-sized summary</h2>
+  <p>After the simulation completes, paste this block into the same PowerShell window:</p>
+  <pre><code>$report = Get-Content "docs/evidence/phase-3-walkforward-report.json" -Raw | ConvertFrom-Json
+$agent = $report.strategies | Where-Object { $_.name -eq "conviction_spread" }
+
+[pscustomobject]@{
+  Evidence            = "Synthetic fixture - not Alpaca paper P&amp;L"
+  Result              = $report.label
+  BeatsBaselines      = $report.beats_baselines
+  WalkForward         = "train / validation / test"
+  StrategiesCompared  = $report.strategies.Count
+  TestTrades          = $agent.test.trade_count
+  TestNetPnL          = $agent.test.net_pnl
+  TestMaxDrawdown     = $agent.test.max_drawdown
+} | Format-List</code></pre>
+
+  <p>The current archived report should produce a compact summary resembling:</p>
+  <pre><code>Evidence            : Synthetic fixture - not Alpaca paper P&amp;L
+Result              : validated
+BeatsBaselines      : True
+WalkForward         : train / validation / test
+StrategiesCompared  : 4
+TestTrades          : 2
+TestNetPnL          : 258.40
+TestMaxDrawdown     : 0.00</code></pre>
+
+  <div class="warning"><strong>Interpretation:</strong> <code>validated</code> means the
+    code completed its internal fixture comparison. The current fixture is a small,
+    mostly rising SPY series with synthetic option quotes. These values are not paper
+    account P&amp;L and are not evidence of future profitability.</div>
+
+  <h2>What to put in the LinkedIn carousel</h2>
+  <ol>
+    <li><strong>Screenshot 1:</strong> the bottom of the test run showing
+      <code>Ran 35 tests</code> and <code>OK</code>.</li>
+    <li><strong>Screenshot 2:</strong> the compact simulation summary, keeping its
+      synthetic-fixture disclaimer visible.</li>
+    <li><strong>Optional screenshot 3:</strong> the GitHub README progress table or the
+      archived JSON evidence file.</li>
+  </ol>
+
+  <h2>Never include these in a screenshot</h2>
+  <ul class="checklist">
+    <li>The local <code>.env</code> file</li>
+    <li>Alpaca API keys or secret keys</li>
+    <li>An unmasked account ID or account number</li>
+    <li>A cropped 100% win rate without the fixture limitation</li>
+  </ul>
+
+  <h2>Retrieval check</h2>
+  <details>
+    <summary>What do the 35 passing tests prove?</summary>
+    <p>They prove the implemented behaviors match the current automated specifications;
+      they do not prove the trading strategy will be profitable.</p>
+  </details>
+  <details>
+    <summary>Why must the synthetic-fixture label remain visible?</summary>
+    <p>Because the option quotes and outcomes are simplified research inputs, not fills
+      or P&amp;L produced by the Alpaca paper account.</p>
+  </details>
+
+  <h2>Primary reading</h2>
+  <p><a href="https://docs.alpaca.markets/us/docs/paper-trading">Alpaca's Paper Trading
+    documentation</a> explains why even broker-simulated results differ from live
+    execution. Our current fixture simulation is an earlier research stage still.</p>
+
+  <footer>Previous: <a href="0003-debug-empty-option-snapshots.html">debug empty option
+    snapshots</a>. Quick reference: <a href="../reference/phase-3-demo-checklist.html">Phase
+    3 demo checklist</a>. Run the commands yourself, then ask the agent about any output
+    you cannot explain.</footer>
+</main>
+</body>
+</html>
