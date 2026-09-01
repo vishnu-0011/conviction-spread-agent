@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 5 — When Alpaca live output appears</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+<main>
+  <div class="eyebrow">ConvictionSpread · Lesson 5 · 8 minutes</div>
+  <h1>When will Alpaca show the actual output?</h1>
+  <p class="lede">Separate live market data, shadow decisions, paper orders, and
+    broker-confirmed P&amp;L. They are four different proof levels.</p>
+
+  <div class="win"><strong>Short answer:</strong> live Alpaca market data is available
+    now. Orders, positions, and paper P&amp;L will appear only after the deterministic
+    execution state machine and autonomous Alpaca integration are complete and we arm
+    a one-contract canary order.</div>
+
+  <h2>The four proof levels</h2>
+  <div class="flow">
+    <div><strong>1 · Fixture</strong>Complete: local research simulation</div>
+    <div><strong>2 · Live data</strong>Available: read-only Alpaca quotes</div>
+    <div><strong>3 · Shadow</strong>Next: live decision, no order</div>
+    <div><strong>4 · Paper trade</strong>Later: broker order, fill, P&amp;L</div>
+  </div>
+
+  <h2>What we can see today</h2>
+  <pre><code>python scripts/preflight.py --underlying SPY</code></pre>
+  <p>This uses the Alpaca paper credentials in the local <code>.env</code> and retrieves
+    account capability, broker clock, contracts, and near-money option snapshots. That
+    is real broker and market-data output, but it is not a strategy trade.</p>
+
+  <h2>What is still missing</h2>
+  <ol>
+    <li>Complete live spread selection and deterministic sizing.</li>
+    <li>Complete the submit → acknowledge → fill → reconcile → close state machine.</li>
+    <li>Connect the scheduled agent through Alpaca MCP or CLI.</li>
+    <li>Run shadow mode first, where a live decision cannot submit an order.</li>
+    <li>Explicitly arm a one-contract paper canary after shadow evidence passes.</li>
+  </ol>
+
+  <h2>What appears after the canary is armed</h2>
+  <ul class="checklist">
+    <li>The accepted or rejected order in the Alpaca paper account</li>
+    <li>Order updates and simulated fills from Alpaca</li>
+    <li>The resulting option legs under paper positions</li>
+    <li>Updated simulated balance and unrealized or realized P&amp;L</li>
+    <li>A local decision record linked to the broker order ID</li>
+  </ul>
+  <p>Alpaca documents paper trading as a real-time simulation: orders are matched using
+    current quotes rather than routed to an exchange. The web dashboard can display the
+    simulated activity and balance. Options positions and balances update immediately,
+    although some non-trade activity records may appear the following day.</p>
+
+  <h2>Best time for the first options canary</h2>
+  <p>Use a normal US trading day during regular market hours: 9:30 a.m.–4:00 p.m. ET.
+    During US daylight-saving time, that is 7:00 p.m.–1:30 a.m. in India. A clean demo
+    should avoid the opening minutes, the closing window, stale quotes, and event risk.</p>
+
+  <div class="warning"><strong>Hackathon meaning of “live”:</strong> real-time Alpaca
+    paper trading, not real-money trading. We should not enable a real brokerage account
+    for this project.</div>
+
+  <h2>Retrieval check</h2>
+  <details>
+    <summary>Does the current simulated P&amp;L appear in Alpaca?</summary>
+    <p>No. It comes from a local synthetic fixture and has no broker order behind it.</p>
+  </details>
+  <details>
+    <summary>What is the first broker-visible milestone?</summary>
+    <p>An explicitly armed, one-contract paper canary accepted by Alpaca after shadow
+      mode and deterministic risk checks pass.</p>
+  </details>
+
+  <h2>Primary reading</h2>
+  <p><a href="https://docs.alpaca.markets/us/docs/paper-trading">Alpaca Paper Trading</a>
+    describes dashboard-visible simulated activity and real-time quote-based fills.
+    <a href="https://docs.alpaca.markets/us/docs/options-trading">Alpaca Options
+    Trading</a> describes paper options enablement and order behavior.</p>
+
+  <footer>Previous: <a href="0004-run-and-showcase-walkforward.html">run and showcase
+    walk-forward evidence</a>. Quick reference:
+    <a href="../reference/alpaca-output-levels.html">Alpaca output levels</a>. Ask the
+    agent to explain a state before enabling execution.</footer>
+</main>
+</body>
+</html>

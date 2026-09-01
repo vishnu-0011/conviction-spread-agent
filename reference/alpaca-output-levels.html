@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ConvictionSpread Alpaca output levels</title>
+  <link rel="stylesheet" href="../assets/lesson.css">
+</head>
+<body>
+<main>
+  <div class="eyebrow">ConvictionSpread · Quick reference</div>
+  <h1>Alpaca output levels</h1>
+
+  <div class="flow">
+    <div><strong>Fixture</strong>Local synthetic results</div>
+    <div><strong>Live data</strong>Alpaca quotes, no order</div>
+    <div><strong>Shadow</strong>Live decision, no order</div>
+    <div><strong>Canary</strong>One paper spread</div>
+  </div>
+
+  <h2>Current state</h2>
+  <p>Fixture simulation is complete and read-only Alpaca data is validated. Shadow mode
+    and paper execution are not implemented yet.</p>
+
+  <h2>Broker-visible output begins when</h2>
+  <ul class="checklist">
+    <li>Risk and lifecycle checks pass</li>
+    <li>The operator explicitly enables paper execution</li>
+    <li>Alpaca accepts the first one-contract MLeg order</li>
+  </ul>
+
+  <h2>Where to observe it</h2>
+  <ul class="checklist">
+    <li>Alpaca paper dashboard: activity, orders, positions, balance</li>
+    <li>Trading API or CLI: order and position records</li>
+    <li>Local logs: thesis, risk decision, payload hash, broker ID</li>
+  </ul>
+
+  <div class="warning">Never label fixture P&amp;L as Alpaca paper P&amp;L. A broker order ID
+    and broker-confirmed lifecycle are the boundary.</div>
+
+  <footer>Full lesson: <a href="../lessons/0005-when-alpaca-live-output-appears.html">when
+    Alpaca live output appears</a>.</footer>
+</main>
+</body>
+</html>
