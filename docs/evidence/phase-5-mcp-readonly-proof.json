@@ -1,0 +1,68 @@
+{
+  "fastmcp_pin": "3.1.0",
+  "live_call": {
+    "arguments": {
+      "feed": "iex",
+      "symbols": "SPY"
+    },
+    "content_types": [
+      "text"
+    ],
+    "raw_market_response_committed": false,
+    "response_sha256": "6f789d9030e4e8802f108db2bf1ee9360ca6d5ab229f551e7f3d2307bffb3feb",
+    "succeeded": true,
+    "tool": "get_stock_snapshot"
+  },
+  "non_read_prefix_tools": [],
+  "protocol_version": "2025-06-18",
+  "safety": {
+    "account_data_requested": false,
+    "credentials_emitted": false,
+    "paper_mode": true,
+    "trading_toolset_requested": false
+  },
+  "schema_version": "phase-5a.mcp-proof.v1",
+  "server_name": "Alpaca MCP Server",
+  "server_package": "alpaca-mcp-server==2.2.0",
+  "tool_count": 32,
+  "tools": [
+    "fetch_alpaca_doc",
+    "get_all_assets",
+    "get_alpaca_endpoint_docs",
+    "get_asset",
+    "get_calendar",
+    "get_clock",
+    "get_corporate_action_announcement",
+    "get_corporate_action_announcements",
+    "get_crypto_bars",
+    "get_crypto_quotes",
+    "get_crypto_trades",
+    "get_market_movers",
+    "get_most_active_stocks",
+    "get_option_bars",
+    "get_option_chain",
+    "get_option_contract",
+    "get_option_contracts",
+    "get_option_exchange_codes",
+    "get_option_latest_quote",
+    "get_option_latest_trade",
+    "get_option_snapshot",
+    "get_option_trades",
+    "get_stock_bars",
+    "get_stock_latest_bar",
+    "get_stock_latest_quote",
+    "get_stock_latest_trade",
+    "get_stock_quotes",
+    "get_stock_snapshot",
+    "get_stock_trades",
+    "list_alpaca_api_endpoints",
+    "search_alpaca_api_specs",
+    "search_alpaca_docs"
+  ],
+  "toolsets_requested": [
+    "assets",
+    "stock-data",
+    "options-data"
+  ],
+  "write_or_account_named_tools": []
+}

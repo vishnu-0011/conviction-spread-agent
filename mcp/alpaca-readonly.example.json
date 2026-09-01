@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "alpaca-readonly": {
+      "command": "uvx",
+      "args": [
+        "--with",
+        "fastmcp==3.1.0",
+        "alpaca-mcp-server==2.2.0"
+      ],
+      "env": {
+        "ALPACA_API_KEY": "YOUR_DEVELOPMENT_PAPER_KEY",
+        "ALPACA_SECRET_KEY": "YOUR_DEVELOPMENT_PAPER_SECRET",
+        "ALPACA_PAPER_TRADE": "true",
+        "ALPACA_TOOLSETS": "assets,stock-data,options-data"
+      }
+    }
+  }
+}

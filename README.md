@@ -10,9 +10,9 @@ with defined-risk vertical debit spreads. A structured AI thesis may recommend a
 trade, but deterministic validation, portfolio limits, and an execution kill
 switch have final authority.
 
-> Current milestone: Phases 0–4 complete through deterministic option normalization,
-> spread construction, final risk admission, and a replayable broker lifecycle. No
-> Alpaca order execution is enabled.
+> Current milestone: Phase 5a complete. The agent now produces an end-to-end decision
+> from live Alpaca paper data through a strict thesis/critic contract, deterministic
+> spread construction, and fail-closed risk preview. Broker writes remain impossible.
 
 ## Hackathon progress
 
@@ -23,7 +23,8 @@ switch have final authority.
 | Data and feature pipeline | Complete | Typed bar adapters and deterministic features |
 | Strategy simulation | Complete | Baselines, walk-forward, and fixture report |
 | Spread construction and risk lifecycle | Complete | 55 tests; no broker writes |
-| Autonomous execution and MCP | Planned | Paper-only, gated rollout |
+| Live shadow autonomy and read-only MCP profile | Complete | Live SPY + MCP calls; 64 tests |
+| Structured AI and paper execution | Next | Gated canary rollout |
 | Dashboard, burn-in, and submission | Planned | Judge-facing evidence and demo |
 
 See the chronological [build progress](docs/progress.md) and the complete
@@ -45,7 +46,8 @@ See the chronological [build progress](docs/progress.md) and the complete
 - `docs/research/alpaca-platform-research.md` — cited official-platform research.
 - `docs/progress.md` — judge-facing build journal and milestone evidence.
 - `lessons/` — short, project-linked lessons for understanding and defending the build.
-- `src/conviction_spread_agent/` — domain and risk-policy foundation.
+- `mcp/` — pinned read-only Alpaca MCP v2 profile with trading tools omitted.
+- `src/conviction_spread_agent/` — domain, agent, shadow, and risk-policy code.
 - `tests/` — dependency-free unit tests for safety-critical calculations.
 
 ## Run the current tests
@@ -66,6 +68,16 @@ Run the fixture-backed walk-forward simulation (no API keys required):
 ```powershell
 python scripts/run_simulation.py
 ```
+
+Run one authenticated GET-only live shadow decision:
+
+```powershell
+$env:PYTHONPATH = "src"
+python scripts/shadow_scan.py --underlying SPY
+```
+
+See the [Phase 5a runbook](docs/phase-5-shadow-mode.md) for the output guide and
+read-only Alpaca MCP setup.
 
 ## Safety notice
 

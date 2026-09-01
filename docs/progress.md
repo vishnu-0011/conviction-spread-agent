@@ -230,6 +230,62 @@ Implement deterministic spread construction and the final risk/lifecycle boundar
 
 Build the Phase 5 shadow agent and Alpaca MCP/CLI integration with submission disabled.
 
+## Milestone 5a — live read-only shadow autonomy
+
+**Date:** 2026-09-02
+**Status:** Complete
+
+### Shipped
+
+- Added exact structured contracts for the thesis proposal and adversarial critic.
+  Missing, additional, mistyped, or invalid fields fail closed.
+- Added a minimal Alpaca client whose complete network boundary is fixed to GET and
+  whose public surface contains no broker-write operation.
+- Added an authenticated shadow runner that reads completed daily bars, the underlying
+  snapshot, paper account capabilities, broker clock, option contracts, and option
+  snapshots before producing one sanitized decision record.
+- Reused the Phase 2 feature engine, Phase 4 option normalization and spread selector,
+  and Phase 4 risk boundary instead of creating a parallel demo path.
+- Added an Alpaca MCP v2.2.0 profile that requests `assets`, `stock-data`, and
+  `options-data` while deliberately omitting the `trading` toolset.
+- Diagnosed an upstream FastMCP 4.0.0 incompatibility, pinned FastMCP 3.1.0, and added
+  a reproducible stdio verifier that keeps the server open through each response.
+
+### Live evidence
+
+- The first live scan processed 98 completed SPY bars and 323 normalized Indicative
+  option candidates.
+- It formed a bearish 765/755 put debit spread expiring 2026-09-15 with a conservative
+  $3.86 debit, $386 maximum loss, and $614 maximum profit.
+- The final risk boundary rejected submission because execution was disabled, dry-run
+  was active, broker state was intentionally unreconciled, and only 21 minutes remained
+  before market close.
+- The public-safe record is `docs/evidence/phase-5-shadow-live-report.json`.
+- The restricted MCP registry exposed 32 read-shaped tools and no account- or
+  trading-named tools; a live IEX SPY snapshot call succeeded through MCP. Sanitized
+  proof is stored in
+  `docs/evidence/phase-5-mcp-readonly-proof.json`.
+- 64 tests pass and Python compilation succeeds across source, scripts, and tests.
+
+### Safety, decisions, and limitations
+
+- The shadow orchestrator never constructs an order intent, and the live run made no
+  broker mutation. No order or position should appear in Alpaca for this milestone.
+- The output excludes keys, account identifiers, request identifiers, and equity values.
+- Candidate identity is hashed into a deterministic decision ID, independent of input
+  ordering, so the same observation cannot silently become a new logical decision.
+- The current deterministic agent is an inspectable test double. A real structured AI
+  provider has not yet been connected. The MCP proof intentionally stores only a
+  response hash, not the raw live snapshot.
+- Portfolio exposure is deliberately marked unreconciled in shadow mode; it must not be
+  treated as execution-ready sizing.
+
+### Next task
+
+Build Phase 5b: connect a real structured AI provider behind the exact schemas and
+archive deterministic-versus-model comparison cases. Only then begin Phase 6 with a
+separately guarded, one-contract paper MLeg canary and broker reconciliation.
+
 ## Update format for future tasks
 
 Every completed task should add an entry containing:

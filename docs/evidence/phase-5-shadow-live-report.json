@@ -1,0 +1,117 @@
+{
+  "agent": {
+    "critic": {
+      "action": "approve",
+      "confidence_cap": null,
+      "reasons": [
+        "no deterministic contradiction exceeded its rejection threshold"
+      ]
+    },
+    "final_confidence": "0.95",
+    "final_direction": "bearish",
+    "proposal": {
+      "confidence": "0.95",
+      "counter_evidence": [
+        "realized_vol=0.004475",
+        "atr=5.233571",
+        "relative_strength=0"
+      ],
+      "direction": "bearish",
+      "evidence": [
+        "regime=bear",
+        "fast_trend=-0.006386",
+        "slow_trend=-0.013241",
+        "relative_volume=0.955381"
+      ],
+      "invalidation": "Underlying closes above 766.21.",
+      "summary": "SPY shadow thesis: bear regime with aligned features.",
+      "valid_for_minutes": 30
+    },
+    "provider": "deterministic-shadow-v1",
+    "provider_role": "transparent test double; external AI adapter pending",
+    "valid_until": "2026-09-01T20:09:18.864014+00:00"
+  },
+  "data": {
+    "candidate_count": 323,
+    "candidate_parse_failures": 0,
+    "data_healthy": true,
+    "market_open": true,
+    "option_feed": "indicative",
+    "stock_feed": "iex",
+    "underlying_price": "760.98"
+  },
+  "decision_id": "shadow-4d56e188110955ee228f",
+  "features": {
+    "as_of": "2026-09-01T04:00:00+00:00",
+    "atr": "5.233571",
+    "feature_set_version": "2026.08.24.v1",
+    "realized_vol": "0.004475",
+    "regime": "bear",
+    "relative_strength": "0",
+    "relative_volume": "0.955381",
+    "source_bar_count": 98,
+    "source_bar_first": "2026-04-14T04:00:00+00:00",
+    "source_bar_last": "2026-09-01T04:00:00+00:00",
+    "symbol": "SPY",
+    "trend_fast": "-0.006386",
+    "trend_slow": "-0.013241"
+  },
+  "generated_at": "2026-09-01T19:39:18.864014+00:00",
+  "mode": "paper-shadow-read-only",
+  "outcome": "candidate_blocked",
+  "risk": {
+    "approved": false,
+    "assessed_at": "2026-09-01T19:39:18.864014+00:00",
+    "maximum_allowed_quantity": 1,
+    "reasons": [
+      "execution is disabled",
+      "dry-run mode cannot submit orders",
+      "local and broker state are not reconciled",
+      "entry is blocked near market close"
+    ]
+  },
+  "safety": {
+    "account_identifier_emitted": false,
+    "broker_reconciled": false,
+    "broker_writes_possible": false,
+    "dry_run": true,
+    "equity_available_for_internal_sizing": true,
+    "equity_value_emitted": false,
+    "execution_enabled": false,
+    "options_buying_power_available": true,
+    "order_payload_emitted": false,
+    "paper_only": true,
+    "read_only_client": true
+  },
+  "schema_version": "phase-5a.shadow.v1",
+  "selection": {
+    "candidates_considered": 323,
+    "eligible_contracts": 316,
+    "method": "delta",
+    "pairs_considered": 11534,
+    "rejection_reasons": [
+      "available deltas are outside the target bands",
+      "candidate pair debit is not below its width",
+      "candidate pair exceeds the maximum debit-to-width ratio",
+      "candidate pair is outside the permitted width range",
+      "candidate quote exceeds the relative-width limit",
+      "candidate quote is stale or future-dated"
+    ],
+    "selected": true,
+    "selection_score": "0.0649",
+    "spread": {
+      "breakeven": "761.14",
+      "conservative_net_debit": "3.86",
+      "expiration": "2026-09-15",
+      "long_strike": "765",
+      "long_symbol": "SPY260915P00765000",
+      "maximum_loss": "386.00",
+      "maximum_profit": "614.00",
+      "quantity": 1,
+      "short_strike": "755",
+      "short_symbol": "SPY260915P00755000",
+      "structure": "bear_put_debit_spread",
+      "width": "10"
+    }
+  }
+}
