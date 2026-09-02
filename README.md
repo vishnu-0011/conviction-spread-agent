@@ -10,9 +10,9 @@ with defined-risk vertical debit spreads. A structured AI thesis may recommend a
 trade, but deterministic validation, portfolio limits, and an execution kill
 switch have final authority.
 
-> Current milestone: the Phase 6 decision cockpit is deployed from a captured live
-> Alpaca shadow decision. Phase 5b's external AI path is integration-ready, while
-> deterministic spread and risk code retains authority. Broker writes remain impossible.
+> Current milestone: the Phase 6 decision cockpit is deployed and the Phase 7a paper
+> MLeg gateway is code-complete. Submission remains disabled by default, the one-contract
+> live canary is not authorized, and deterministic risk code retains final authority.
 
 ## Hackathon progress
 
@@ -26,8 +26,9 @@ switch have final authority.
 | Live shadow autonomy and read-only MCP profile | Complete | Live SPY + MCP calls; 64 tests |
 | Structured external AI adapter | Integration-ready | Closed schemas; 70 total tests |
 | Observability and demo cockpit | Complete | Production build, zero audit findings, deployed v1 |
-| Paper execution and reconciliation | Next | One-contract gated canary |
-| Burn-in, fresh judging account, and submission | Planned | Broker-confirmed evidence and demo |
+| Paper execution gateway and order reconciliation | Gateway-ready | 10 focused tests; live canary not authorized |
+| Paper burn-in and controlled canary | Next | One exact one-contract MLeg after approval |
+| Fresh judging account and submission | Planned | Broker-confirmed evidence and demo |
 
 See the chronological [build progress](docs/progress.md) and the complete
 [implementation roadmap](docs/roadmap.md).
@@ -47,6 +48,7 @@ See the chronological [build progress](docs/progress.md) and the complete
 - `docs/strategy-spec.md` — provisional strategy and options mechanics.
 - `docs/research/alpaca-platform-research.md` — cited official-platform research.
 - `docs/progress.md` — judge-facing build journal and milestone evidence.
+- `docs/phase-7-paper-canary-readiness.md` — paper gateway safety contract and canary gate.
 - `lessons/` — short, project-linked lessons for understanding and defending the build.
 - `mcp/` — pinned read-only Alpaca MCP v2 profile with trading tools omitted.
 - `dashboard/` — judge-facing decision cockpit with no broker-write surface.

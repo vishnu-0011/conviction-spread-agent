@@ -1,0 +1,32 @@
+{
+  "phase": "7a",
+  "captured_at": "2026-09-02T09:24:44.684Z",
+  "status": "gateway-ready-live-canary-not-authorized",
+  "implementation": {
+    "paper_host_hard_coded": true,
+    "submission_enabled_by_default": false,
+    "one_contract_limit": true,
+    "authorization_maximum_age_seconds": 120,
+    "risk_maximum_age_seconds": 10,
+    "authorization_bound_to_client_order_id": true,
+    "authorization_bound_to_payload_sha256": true,
+    "durable_state_before_post": true,
+    "automatic_post_retry_after_uncertainty": false,
+    "recovery_uses_client_order_id_lookup": true,
+    "partial_exposure_preserved": true
+  },
+  "verification": {
+    "focused_phase_7_tests": 10,
+    "total_tests": 80,
+    "tests_passed": true,
+    "fake_transport_only": true,
+    "temporary_state_only": true
+  },
+  "broker_impact": {
+    "alpaca_requests_made_by_phase_7_tests": 0,
+    "orders_submitted": 0,
+    "orders_canceled": 0,
+    "positions_changed": 0
+  },
+  "next_gate": "explicit approval of one exact one-contract Alpaca paper MLeg order"
+}

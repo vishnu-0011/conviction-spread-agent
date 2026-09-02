@@ -10,9 +10,20 @@ from .domain import (
 )
 from .risk import PortfolioState, RiskDecision, RiskLimits, assess_trade
 from .orders import MlegOrderIntent, OrderPurpose, build_mleg_order_intent
+from .execution import (
+    AlpacaPaperOrderClient,
+    ExecutionAuthorization,
+    ExecutionBlocked,
+    JsonLifecycleStore,
+    PaperExecutionGateway,
+)
 
 __all__ = [
+    "AlpacaPaperOrderClient",
     "Direction",
+    "ExecutionAuthorization",
+    "ExecutionBlocked",
+    "JsonLifecycleStore",
     "OptionLeg",
     "OptionRight",
     "OrderPurpose",
@@ -25,4 +36,5 @@ __all__ = [
     "assess_trade",
     "build_mleg_order_intent",
     "MlegOrderIntent",
+    "PaperExecutionGateway",
 ]

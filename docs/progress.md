@@ -369,6 +369,50 @@ default and prepares a separately approved one-contract Alpaca paper canary.
 Build Phase 7's disabled-by-default paper execution gateway and broker reconciliation,
 then request explicit authorization before a one-contract paper MLeg canary.
 
+## Milestone 7a — disabled-by-default paper MLeg gateway
+
+**Date:** 2026-09-02
+**Status:** Gateway-ready; live canary not authorized
+
+### Shipped
+
+- Added a narrow Alpaca client fixed to the paper host and only two endpoints: POST
+  `/v2/orders` for a typed MLeg intent and GET `/v2/orders:by_client_order_id` for
+  recovery.
+- Added a one-contract execution boundary that requires paper mode, execution enabled,
+  dry-run off, broker reconciliation, kill switch clear, explicit operator approval,
+  a fresh deterministic risk decision, and a lifecycle matching durable state.
+- Bound the short-lived authorization to the exact client order ID and payload SHA-256.
+- Added atomic monotonic lifecycle persistence and wrote `ENTRY_SUBMIT_REQUESTED` before
+  network I/O.
+- Prohibited automatic POST retries after uncertain outcomes; recovery can only look up
+  the original client order ID.
+- Preserved non-zero exposure when a canceled or rejected parent reports a partial fill.
+
+### Verification
+
+- 10 focused tests cover default blocking, exact POST shape, stale risk, the one-contract
+  cap, exact-order authorization, uncertain outcomes, missing orders, mismatched broker
+  responses, terminal partial fills, status mapping, and persistence regression.
+- All 80 project tests pass and Python compilation succeeds.
+- The Phase 7 tests use fake transports and temporary lifecycle stores.
+- Evidence: `docs/evidence/phase-7a-gateway-readiness-report.json`.
+
+### Safety and account impact
+
+- No Phase 7 test made an Alpaca request.
+- No order was submitted, canceled, replaced, or filled.
+- There is no live canary command; operator approval must be obtained for one exact
+  fresh paper order before the gateway is enabled.
+- Current Alpaca request and lifecycle behavior was checked against official order,
+  MLeg, client-order-ID lookup, and order-status documentation.
+
+### Next task
+
+Build the pre-canary portfolio/open-order reconciliation and exact-order preview, then
+request explicit approval for a one-contract development-paper MLeg submission during
+a healthy market window.
+
 ## Update format for future tasks
 
 Every completed task should add an entry containing:
