@@ -212,8 +212,8 @@ Submit an autonomous **Options Alpha Agent** that:
 
 ## Current critical path
 
-`rules → API capability spike → reliable data → risk engine → execution state machine
-→ shadow session → canary session → dashboard/demo → fresh account → submission`
+`rules → API capability spike → reliable data → risk engine → shadow session
+→ dashboard/demo → execution gateway → canary session → fresh account → submission`
 
 P&L matters, but a high-variance last-minute strategy can erase both P&L and technical
 credibility. Reliability and bounded risk remain release requirements.

@@ -325,9 +325,49 @@ separately guarded, one-contract paper MLeg canary and broker reconciliation.
 ### Next task
 
 Configure a local OpenAI project key, explicit supported model, and budget, then save
-one sanitized external-provider shadow result. After that validation, Phase 6 can add
-an execution gateway with submission disabled by default and prepare a separately
-approved one-contract Alpaca paper canary.
+one sanitized external-provider shadow result. Phase 6 builds the judge-facing
+observability surface; Phase 7 adds an execution gateway with submission disabled by
+default and prepares a separately approved one-contract Alpaca paper canary.
+
+## Milestone 6 — judge-facing decision cockpit
+
+**Date:** 2026-09-02
+**Status:** Complete; production access remains owner-only
+
+### Shipped
+
+- Added a dark, responsive decision cockpit that narrates one complete captured live
+  shadow decision from market observation through thesis, critic, spread construction,
+  and final deterministic risk rejection.
+- Visualized the 323 → 316 → 11,534 → 1 → 0 decision funnel, the selected 765/755
+  bear-put spread, debit, bounded payoff, breakeven, feature snapshot, counter-evidence,
+  timeline, and system health.
+- Added an explicit safety proof showing that execution is disabled, dry-run is active,
+  broker state is unreconciled, and no order gateway is installed.
+- Generated and wired a project social-preview card containing no account or credential
+  data.
+- Deployed Sites version 1 at
+  <https://conviction-spread-agent.vv11njrfan.chatgpt.site>.
+
+### Verification
+
+- The final vinext production build completes successfully.
+- The production dependency audit reports zero vulnerabilities.
+- The local production route returned HTTP 200.
+- Sites reports the production deployment succeeded.
+- Evidence: `docs/evidence/phase-6-dashboard-report.json`.
+
+### Safety and limitations
+
+- The dashboard replays a sanitized captured decision; it does not continuously refresh.
+- No paper order was placed and no broker-write surface exists in the dashboard.
+- The production deployment is owner-only and must be explicitly made public before
+  it is submitted as the judge demo URL.
+
+### Next task
+
+Build Phase 7's disabled-by-default paper execution gateway and broker reconciliation,
+then request explicit authorization before a one-contract paper MLeg canary.
 
 ## Update format for future tasks
 

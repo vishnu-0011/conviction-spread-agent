@@ -1,0 +1,48 @@
+{
+  "phase": 6,
+  "captured_at": "2026-09-02T08:08:07.573Z",
+  "status": "complete",
+  "artifact": {
+    "name": "ConvictionSpread Paper Decision Cockpit",
+    "production_url": "https://conviction-spread-agent.vv11njrfan.chatgpt.site",
+    "access": "owner-only",
+    "version": 1,
+    "data_mode": "captured-live-shadow-decision",
+    "source_evidence": "docs/evidence/phase-5-shadow-live-report.json"
+  },
+  "decision_story": {
+    "underlying": "SPY",
+    "reference_price": 760.98,
+    "proposal_direction": "bearish",
+    "proposal_confidence": 0.95,
+    "critic_approved": true,
+    "candidate_contracts": 323,
+    "selected_spread": "765/755 bear put",
+    "conservative_debit": 3.86,
+    "maximum_loss": 386.0,
+    "maximum_profit": 614.0,
+    "breakeven": 761.14,
+    "orders_submitted": 0
+  },
+  "verification": {
+    "production_build_passed": true,
+    "production_dependency_vulnerabilities": 0,
+    "local_route_http_status": 200,
+    "production_deployment_succeeded": true,
+    "social_preview_present": true
+  },
+  "safety": {
+    "paper_only": true,
+    "execution_enabled": false,
+    "dry_run": true,
+    "broker_reconciled": false,
+    "order_gateway_installed": false,
+    "credentials_in_client": false,
+    "account_identifier_published": false
+  },
+  "limitations": [
+    "The dashboard replays a captured live shadow decision and does not continuously refresh.",
+    "The deployment is owner-only until an explicit access change is approved.",
+    "No broker-confirmed order lifecycle exists before the Phase 7 canary."
+  ]
+}
