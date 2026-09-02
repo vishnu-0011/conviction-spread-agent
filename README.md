@@ -10,9 +10,9 @@ with defined-risk vertical debit spreads. A structured AI thesis may recommend a
 trade, but deterministic validation, portfolio limits, and an execution kill
 switch have final authority.
 
-> Current milestone: Phase 5a complete. The agent now produces an end-to-end decision
-> from live Alpaca paper data through a strict thesis/critic contract, deterministic
-> spread construction, and fail-closed risk preview. Broker writes remain impossible.
+> Current milestone: Phase 5a is complete and Phase 5b is integration-ready. The agent
+> can use live Alpaca paper data plus an opt-in structured external thesis/critic, while
+> deterministic spread and risk code retains authority. Broker writes remain impossible.
 
 ## Hackathon progress
 
@@ -24,7 +24,8 @@ switch have final authority.
 | Strategy simulation | Complete | Baselines, walk-forward, and fixture report |
 | Spread construction and risk lifecycle | Complete | 55 tests; no broker writes |
 | Live shadow autonomy and read-only MCP profile | Complete | Live SPY + MCP calls; 64 tests |
-| Structured AI and paper execution | Next | Gated canary rollout |
+| Structured external AI adapter | Integration-ready | Closed schemas; 70 total tests |
+| Paper execution and reconciliation | Next | One-contract gated canary |
 | Dashboard, burn-in, and submission | Planned | Judge-facing evidence and demo |
 
 See the chronological [build progress](docs/progress.md) and the complete
@@ -78,6 +79,17 @@ python scripts/shadow_scan.py --underlying SPY
 
 See the [Phase 5a runbook](docs/phase-5-shadow-mode.md) for the output guide and
 read-only Alpaca MCP setup.
+
+After locally configuring `OPENAI_API_KEY` and an explicit `OPENAI_MODEL`, opt into
+the structured provider with:
+
+```powershell
+$env:PYTHONPATH = "src"
+python scripts/shadow_scan.py --underlying SPY --ai-provider openai
+```
+
+This path makes two model calls. The deterministic mode remains the default and makes
+none. See the [Phase 5b adapter guide](docs/phase-5b-structured-ai.md).
 
 ## Safety notice
 

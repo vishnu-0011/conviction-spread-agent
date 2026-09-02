@@ -12,9 +12,11 @@ import sys
 from zoneinfo import ZoneInfo
 
 from conviction_spread_agent.agent import (
-    CriticAction,
+    AgentProposal,
+    CriticVerdict,
     deterministic_shadow_critic,
     deterministic_shadow_proposal,
+    finalize_thesis,
 )
 from conviction_spread_agent.alpaca_readonly import (
     AlpacaReadError,
@@ -24,6 +26,7 @@ from conviction_spread_agent.data.adapters import parse_alpaca_bars
 from conviction_spread_agent.data.bars import BarSeries
 from conviction_spread_agent.domain import Direction
 from conviction_spread_agent.features.engine import compute_features
+from conviction_spread_agent.model_provider import ModelProviderError, OpenAIResponsesAgent
 from conviction_spread_agent.option_data import parse_alpaca_option_candidate
 from conviction_spread_agent.shadow import ShadowBrokerContext, build_shadow_decision
 
@@ -109,18 +112,20 @@ def _completed_daily_window(now: datetime) -> tuple[datetime, datetime]:
     return end - timedelta(days=140), end
 
 
-def _effective_direction(features, *, spot: Decimal) -> Direction:
-    proposal = deterministic_shadow_proposal(features, underlying_price=spot)
-    critic = deterministic_shadow_critic(proposal, features)
-    if critic.action is CriticAction.REJECT:
-        return Direction.PASS
-    confidence = proposal.confidence
-    if critic.action is CriticAction.DOWNGRADE:
-        assert critic.confidence_cap is not None
-        confidence = min(confidence, critic.confidence_cap)
-    if confidence < Decimal("0.72"):
-        return Direction.PASS
-    return proposal.direction
+def _effective_direction(
+    proposal: AgentProposal,
+    critic: CriticVerdict,
+    *,
+    underlying: str,
+    created_at: datetime,
+) -> Direction:
+    return finalize_thesis(
+        proposal,
+        critic,
+        thesis_id="direction-preview",
+        underlying=underlying,
+        created_at=created_at,
+    ).direction
 
 
 def _load_series(
@@ -142,6 +147,9 @@ def run_live_shadow(
     underlying: str,
     stock_feed: str,
     option_feed: str,
+    ai_provider: str = "deterministic",
+    openai_api_key: str | None = None,
+    openai_model: str | None = None,
 ) -> dict[str, object]:
     account = client.account()
     if str(account.get("status", "")).upper() != "ACTIVE":
@@ -171,13 +179,54 @@ def run_live_shadow(
         as_of=symbol_series.bars[-1].timestamp,
     )
     spot = _spot_price(client.stock_snapshot(underlying, feed=stock_feed))
-    direction = _effective_direction(features, spot=spot)
+    deterministic_proposal = deterministic_shadow_proposal(
+        features, underlying_price=spot
+    )
+    deterministic_critic = deterministic_shadow_critic(
+        deterministic_proposal, features
+    )
+    provider_name = "deterministic-shadow-v1"
+    provider_role = "transparent deterministic test double"
+    provider_metadata: dict[str, object] = {}
+    proposal = deterministic_proposal
+    critic = deterministic_critic
+    if ai_provider == "openai":
+        if not openai_api_key or not openai_model:
+            raise ValueError(
+                "OPENAI_API_KEY and OPENAI_MODEL are required for --ai-provider openai"
+            )
+        model_run = OpenAIResponsesAgent(openai_api_key, openai_model).evaluate(
+            features, underlying_price=spot
+        )
+        proposal = model_run.proposal
+        critic = model_run.critic
+        provider_name = f"{model_run.provider}:{model_run.model}"
+        provider_role = "external structured thesis and critic; deterministic gates final"
+        provider_metadata = model_run.public_metadata()
+        provider_metadata["deterministic_comparison"] = {
+            "proposal_direction": deterministic_proposal.direction.value,
+            "critic_action": deterministic_critic.action.value,
+            "same_proposal_direction": (
+                proposal.direction is deterministic_proposal.direction
+            ),
+            "same_critic_action": critic.action is deterministic_critic.action,
+        }
+    elif ai_provider != "deterministic":
+        raise ValueError("AI provider must be deterministic or openai")
+
+    direction = _effective_direction(
+        proposal,
+        critic,
+        underlying=underlying,
+        created_at=generated_at,
+    )
+    market_date = generated_at.astimezone(NEW_YORK).date()
 
     candidates = []
     parse_failures = 0
     if direction is not Direction.PASS:
-        expiration_from = generated_at.date() + timedelta(days=14)
-        expiration_to = generated_at.date() + timedelta(days=35)
+        expiration_from = market_date + timedelta(days=14)
+        expiration_to = market_date + timedelta(days=35)
         strike_from = spot * Decimal("0.95")
         strike_to = spot * Decimal("1.05")
         right = "call" if direction is Direction.BULLISH else "put"
@@ -224,9 +273,14 @@ def run_live_shadow(
             data_healthy=data_healthy,
         ),
         generated_at=generated_at,
-        market_date=generated_at.astimezone(NEW_YORK).date(),
+        market_date=market_date,
         stock_feed=stock_feed,
         option_feed=option_feed,
+        proposal=proposal,
+        critic=critic,
+        provider_name=provider_name,
+        provider_role=provider_role,
+        provider_metadata=provider_metadata,
     )
     result["data"]["candidate_parse_failures"] = parse_failures
     return result
@@ -239,6 +293,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--underlying", default="SPY")
     parser.add_argument("--stock-feed", default="iex")
     parser.add_argument("--option-feed", default="indicative")
+    parser.add_argument(
+        "--ai-provider",
+        choices=("deterministic", "openai"),
+        default="deterministic",
+        help="External model calls are opt-in; deterministic mode spends nothing.",
+    )
     parser.add_argument(
         "--output",
         type=Path,
@@ -263,8 +323,11 @@ def main(argv: list[str] | None = None) -> int:
             underlying=args.underlying.strip().upper(),
             stock_feed=args.stock_feed.strip().lower(),
             option_feed=args.option_feed.strip().lower(),
+            ai_provider=args.ai_provider,
+            openai_api_key=os.environ.get("OPENAI_API_KEY", "").strip() or None,
+            openai_model=os.environ.get("OPENAI_MODEL", "").strip() or None,
         )
-    except (AlpacaReadError, ValueError) as exc:
+    except (AlpacaReadError, ModelProviderError, ValueError) as exc:
         print(f"shadow scan failed safely: {exc}", file=sys.stderr)
         return 1
 

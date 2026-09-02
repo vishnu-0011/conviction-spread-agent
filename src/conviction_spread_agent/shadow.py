@@ -10,6 +10,8 @@ import json
 from typing import Any
 
 from .agent import (
+    AgentProposal,
+    CriticVerdict,
     deterministic_shadow_critic,
     deterministic_shadow_proposal,
     finalize_thesis,
@@ -144,6 +146,11 @@ def build_shadow_decision(
     market_date: date | None = None,
     stock_feed: str,
     option_feed: str,
+    proposal: AgentProposal | None = None,
+    critic: CriticVerdict | None = None,
+    provider_name: str = SHADOW_PROVIDER,
+    provider_role: str | None = None,
+    provider_metadata: dict[str, object] | None = None,
 ) -> dict[str, object]:
     """Build one public-safe shadow record; no order intent is ever constructed."""
 
@@ -152,21 +159,25 @@ def build_shadow_decision(
     if underlying_price <= 0:
         raise ValueError("underlying price must be positive")
 
+    if (proposal is None) != (critic is None):
+        raise ValueError("proposal and critic must be supplied together")
+    if not provider_name.strip():
+        raise ValueError("agent provider name is required")
     decision_market_date = market_date or generated_at.date()
-    proposal = deterministic_shadow_proposal(
+    active_proposal = proposal or deterministic_shadow_proposal(
         features, underlying_price=underlying_price
     )
-    critic = deterministic_shadow_critic(proposal, features)
+    active_critic = critic or deterministic_shadow_critic(active_proposal, features)
     decision_id = _decision_id(
         features,
         underlying_price=underlying_price,
-        proposal=proposal.as_mapping(),
-        critic=critic.as_mapping(),
+        proposal=active_proposal.as_mapping(),
+        critic=active_critic.as_mapping(),
         candidates=candidates,
     )
     thesis = finalize_thesis(
-        proposal,
-        critic,
+        active_proposal,
+        active_critic,
         thesis_id=decision_id,
         underlying=features.symbol,
         created_at=generated_at,
@@ -223,7 +234,9 @@ def build_shadow_decision(
         outcome = "candidate_blocked"
 
     return {
-        "schema_version": "phase-5a.shadow.v1",
+        "schema_version": "phase-5a.shadow.v1"
+        if provider_name == SHADOW_PROVIDER
+        else "phase-5b.shadow.v1",
         "mode": SHADOW_MODE,
         "generated_at": generated_at.isoformat(),
         "decision_id": decision_id,
@@ -238,10 +251,12 @@ def build_shadow_decision(
         },
         "features": _feature_record(features),
         "agent": {
-            "provider": SHADOW_PROVIDER,
-            "provider_role": "transparent test double; external AI adapter pending",
-            "proposal": proposal.as_mapping(),
-            "critic": critic.as_mapping(),
+            "provider": provider_name,
+            "provider_role": provider_role
+            or "transparent test double; external AI adapter optional",
+            "provider_metadata": provider_metadata or {},
+            "proposal": active_proposal.as_mapping(),
+            "critic": active_critic.as_mapping(),
             "final_direction": thesis.direction.value,
             "final_confidence": str(thesis.confidence),
             "valid_until": thesis.valid_until.isoformat(),

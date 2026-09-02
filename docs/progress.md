@@ -274,9 +274,8 @@ Build the Phase 5 shadow agent and Alpaca MCP/CLI integration with submission di
 - The output excludes keys, account identifiers, request identifiers, and equity values.
 - Candidate identity is hashed into a deterministic decision ID, independent of input
   ordering, so the same observation cannot silently become a new logical decision.
-- The current deterministic agent is an inspectable test double. A real structured AI
-  provider has not yet been connected. The MCP proof intentionally stores only a
-  response hash, not the raw live snapshot.
+- The deterministic agent was the only provider at this milestone. The MCP proof
+  intentionally stores only a response hash, not the raw live snapshot.
 - Portfolio exposure is deliberately marked unreconciled in shadow mode; it must not be
   treated as execution-ready sizing.
 
@@ -285,6 +284,50 @@ Build the Phase 5 shadow agent and Alpaca MCP/CLI integration with submission di
 Build Phase 5b: connect a real structured AI provider behind the exact schemas and
 archive deterministic-versus-model comparison cases. Only then begin Phase 6 with a
 separately guarded, one-contract paper MLeg canary and broker reconciliation.
+
+## Milestone 5b — structured external AI adapter
+
+**Date:** 2026-09-02
+**Status:** Integration-ready; live provider validation pending
+
+### Shipped
+
+- Added an opt-in OpenAI Responses API adapter with separate structured proposal and
+  critic calls; deterministic mode remains the zero-cost default.
+- Defined closed JSON schemas with all fields required and repeated local validation
+  through the existing `AgentProposal` and `CriticVerdict` contracts.
+- Limited model input to the versioned feature snapshot and underlying reference price.
+  The adapter exposes no tools and sends no Alpaca credential, account, portfolio,
+  contract, quantity, or order data.
+- Added bounded timeouts and retries, explicit model selection, refusal/incomplete
+  handling, response hashing, token-count evidence, and `store: false`.
+- Added deterministic-versus-model comparison metadata without allowing either model
+  call to control contract selection, sizing, execution, or risk overrides.
+
+### Verification
+
+- Six focused tests use an in-memory transport and incur no model cost.
+- Tests cover exact request shape, closed schemas, hostile extra fields, incomplete
+  responses, explicit model selection, data minimization, and final execution blocking.
+- 70 project tests pass and Python compilation succeeds across source, scripts, and
+  tests.
+- Evidence: `docs/evidence/phase-5b-structured-model-report.json`.
+
+### Safety and limitation
+
+- No paid external-model call was made because no OpenAI project key, explicit model,
+  or API budget was authorized for this run.
+- The external path is opt-in with `--ai-provider openai`; the default path performs
+  no OpenAI request.
+- A successful external thesis remains shadow-only with execution disabled, dry-run
+  active, and broker state unreconciled.
+
+### Next task
+
+Configure a local OpenAI project key, explicit supported model, and budget, then save
+one sanitized external-provider shadow result. After that validation, Phase 6 can add
+an execution gateway with submission disabled by default and prepare a separately
+approved one-contract Alpaca paper canary.
 
 ## Update format for future tasks
 

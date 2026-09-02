@@ -1,0 +1,40 @@
+{
+  "phase": "5b",
+  "status": "integration-ready-live-provider-validation-pending",
+  "adapter": {
+    "api": "OpenAI Responses API",
+    "structured_outputs": true,
+    "proposal_schema_closed": true,
+    "critic_schema_closed": true,
+    "local_validation_after_provider_validation": true,
+    "model_selection_explicit": true,
+    "store": false,
+    "tools_exposed_to_model": 0,
+    "model_calls_per_external_scan": 2,
+    "maximum_attempts_per_call": 2
+  },
+  "data_boundary": {
+    "market_features_sent": true,
+    "underlying_reference_price_sent": true,
+    "alpaca_credentials_sent": false,
+    "account_identifiers_sent": false,
+    "equity_or_buying_power_sent": false,
+    "positions_sent": false,
+    "option_contracts_sent": false,
+    "order_payload_sent": false
+  },
+  "execution_boundary": {
+    "external_proposal_can_select_contracts": false,
+    "external_proposal_can_select_quantity": false,
+    "external_proposal_can_override_risk": false,
+    "broker_writes_possible_in_shadow": false
+  },
+  "verification": {
+    "focused_model_tests": 6,
+    "total_project_tests": 70,
+    "tests_passed": true,
+    "python_compilation_passed": true,
+    "paid_external_model_call_executed": false
+  },
+  "next_gate": "Configure an OpenAI project key, explicit supported model, and budget; run one sanitized external-model shadow scan before paper execution work."
+}
