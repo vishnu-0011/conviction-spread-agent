@@ -112,6 +112,16 @@ def _spread_record(spread: VerticalSpread) -> dict[str, object]:
         "expiration": spread.long_leg.expiration.isoformat(),
         "long_strike": str(spread.long_leg.strike),
         "short_strike": str(spread.short_leg.strike),
+        "long_quote": {
+            "bid": str(spread.long_leg.quote.bid),
+            "ask": str(spread.long_leg.quote.ask),
+            "observed_at": spread.long_leg.quote.observed_at.isoformat(),
+        },
+        "short_quote": {
+            "bid": str(spread.short_leg.quote.bid),
+            "ask": str(spread.short_leg.quote.ask),
+            "observed_at": spread.short_leg.quote.observed_at.isoformat(),
+        },
         "quantity": spread.quantity,
         "conservative_net_debit": str(spread.net_debit),
         "width": str(spread.width),

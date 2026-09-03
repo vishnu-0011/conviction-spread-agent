@@ -3,6 +3,7 @@ from decimal import Decimal
 from io import BytesIO
 import unittest
 from unittest.mock import patch
+from urllib.error import URLError
 
 from conviction_spread_agent.agent import (
     AgentProposal,
@@ -140,6 +141,21 @@ class AgentContractTests(unittest.TestCase):
 
 
 class ReadOnlyClientTests(unittest.TestCase):
+    def test_transient_get_failure_is_retried_without_changing_method(self) -> None:
+        response = BytesIO(b'{"status":"ACTIVE"}')
+        with patch(
+            "conviction_spread_agent.alpaca_readonly.urlopen",
+            side_effect=[URLError("temporary"), response],
+        ) as mocked:
+            result = AlpacaReadOnlyClient(
+                "key", "secret", retry_delay_seconds=0
+            ).account()
+        self.assertEqual(result["status"], "ACTIVE")
+        self.assertEqual(mocked.call_count, 2)
+        self.assertTrue(
+            all(call.args[0].get_method() == "GET" for call in mocked.call_args_list)
+        )
+
     def test_network_method_is_fixed_to_get(self) -> None:
         response = BytesIO(b'{"status":"ACTIVE"}')
         with patch(

@@ -1,0 +1,40 @@
+{
+  "agent": {
+    "final_confidence": "0.95",
+    "final_direction": "bearish",
+    "invalidation": "Underlying closes above 297.10.",
+    "summary": "IWM shadow thesis: bear regime with aligned features.",
+    "valid_until": "2026-09-03T06:04:16.098407+00:00"
+  },
+  "blocking_reasons": [
+    "candidate quote is stale or future-dated",
+    "no contracts passed the eligibility gates",
+    "shadow decision did not select an executable spread"
+  ],
+  "broker_reconciliation": {
+    "account_fingerprint": "da5220a73963",
+    "account_identifier_emitted": false,
+    "equity_available": true,
+    "open_order_count": 0,
+    "open_position_count": 0,
+    "options_buying_power_available": true,
+    "previous_equity_available": true,
+    "reasons": [],
+    "reconciled": true
+  },
+  "decision_id": "shadow-dc8c4e8710c9a1358367",
+  "mode": "paper-canary-preview",
+  "order": null,
+  "prepared_at": "2026-09-03T05:34:30.313560+00:00",
+  "ready_for_operator_approval": false,
+  "risk": null,
+  "safety": {
+    "account_identifier_emitted": false,
+    "broker_write_performed": false,
+    "one_contract_limit": true,
+    "operator_confirmation_required": true,
+    "paper_only": true,
+    "preview_only": true
+  },
+  "schema_version": "phase-7b.canary-preview.v1"
+}

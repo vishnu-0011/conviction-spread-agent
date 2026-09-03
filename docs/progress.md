@@ -443,6 +443,46 @@ a healthy market window.
 Run another shadow scan during a healthy US market window, then complete the Phase 7b
 pre-canary position/open-order reconciliation and exact one-contract order preview.
 
+## Phase 7b — reconciled one-contract canary preview
+
+**Date:** 2026-09-03
+**Status:** Preview complete; live paper submission pending the regular session
+
+### Shipped behavior
+
+- Added a GET-only paper-state client for account, position, and open-order reads.
+- The first canary requires a flat Level 3 paper account with positive equity and
+  options buying power.
+- Added exact reconstruction of the selected spread and a judge-facing MLeg preview
+  containing both legs, limit debit, maximum loss/profit, breakeven, client order ID,
+  payload hash, and exact Alpaca payload.
+- Bound submission to four explicit environment gates, an interactive exact-order
+  confirmation, one contract, fresh risk, and durable lifecycle state.
+- Added bounded retries only to idempotent GET requests after observing intermittent
+  TLS timeouts. POST remains single-attempt and is never automatically retried.
+- Normalized limit prices to Alpaca's documented decimal precision and bound risk to
+  the exact normalized debit.
+
+### Verification
+
+- All 89 tests pass and Python compilation succeeds.
+- A live GET-only IWM preview observed a 0.95-confidence bearish thesis.
+- The paper account was flat and broker reconciliation passed.
+- The overnight preview rejected every option as stale and performed no broker write.
+- Evidence: docs/evidence/2026-09-03-iwm-canary-preview.json.
+
+### Safety and account impact
+
+- No order was submitted, replaced, canceled, exercised, or filled.
+- No account identifier or credential was emitted.
+- The canary cannot submit unless every runtime and risk gate agrees in one process.
+
+### Next task
+
+After the 15-minute opening gate, create a fresh IWM preview. If and only if every
+gate passes, obtain exact operator confirmation and submit the single paper MLeg,
+then preserve the broker-confirmed receipt and performance evidence.
+
 ## Update format for future tasks
 
 Every completed task should add an entry containing:

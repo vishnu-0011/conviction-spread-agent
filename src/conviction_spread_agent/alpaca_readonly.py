@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 import json
+from time import sleep
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
@@ -31,14 +32,28 @@ class AlpacaReadError(RuntimeError):
 class AlpacaReadOnlyClient:
     """Small Alpaca client whose complete network surface is GET-only."""
 
-    def __init__(self, api_key: str, secret_key: str, *, timeout_seconds: int = 20) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        secret_key: str,
+        *,
+        timeout_seconds: int = 20,
+        maximum_attempts: int = 3,
+        retry_delay_seconds: float = 0.5,
+    ) -> None:
         if not api_key.strip() or not secret_key.strip():
             raise ValueError("Alpaca API key and secret are required")
         if timeout_seconds <= 0:
             raise ValueError("timeout must be positive")
+        if maximum_attempts <= 0:
+            raise ValueError("maximum attempts must be positive")
+        if retry_delay_seconds < 0:
+            raise ValueError("retry delay cannot be negative")
         self.__api_key = api_key
         self.__secret_key = secret_key
         self.__timeout_seconds = timeout_seconds
+        self.__maximum_attempts = maximum_attempts
+        self.__retry_delay_seconds = retry_delay_seconds
 
     def __get_json(
         self,
@@ -65,19 +80,24 @@ class AlpacaReadOnlyClient:
                 "User-Agent": USER_AGENT,
             },
         )
-        try:
-            with urlopen(request, timeout=self.__timeout_seconds) as response:  # noqa: S310
-                payload = json.load(response)
-        except HTTPError as exc:
-            request_id = exc.headers.get("X-Request-ID") if exc.headers else None
-            suffix = f" (request id {request_id})" if request_id else ""
-            raise AlpacaReadError(
-                f"Alpaca GET returned HTTP {exc.code}{suffix}", status=exc.code
-            ) from exc
-        except URLError as exc:
-            raise AlpacaReadError(f"Could not reach Alpaca: {exc.reason}") from exc
-        except TimeoutError as exc:
-            raise AlpacaReadError("Alpaca GET timed out") from exc
+        for attempt in range(1, self.__maximum_attempts + 1):
+            try:
+                with urlopen(request, timeout=self.__timeout_seconds) as response:  # noqa: S310
+                    payload = json.load(response)
+                break
+            except HTTPError as exc:
+                request_id = exc.headers.get("X-Request-ID") if exc.headers else None
+                suffix = f" (request id {request_id})" if request_id else ""
+                raise AlpacaReadError(
+                    f"Alpaca GET returned HTTP {exc.code}{suffix}", status=exc.code
+                ) from exc
+            except (URLError, TimeoutError) as exc:
+                if attempt >= self.__maximum_attempts:
+                    detail = exc.reason if isinstance(exc, URLError) else "timed out"
+                    raise AlpacaReadError(
+                        f"Could not reach Alpaca after {attempt} GET attempts: {detail}"
+                    ) from exc
+                sleep(self.__retry_delay_seconds * attempt)
         if not isinstance(payload, dict):
             raise AlpacaReadError("Alpaca GET returned a non-object JSON response")
         return payload

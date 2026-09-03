@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR
 from enum import StrEnum
 import hashlib
 import json
@@ -26,6 +26,14 @@ def _decimal_string(value: Decimal) -> str:
     if "." in rendered:
         rendered = rendered.rstrip("0").rstrip(".")
     return rendered or "0"
+
+
+def _alpaca_limit_price(value: Decimal, purpose: OrderPurpose) -> Decimal:
+    """Normalize to Alpaca's documented limit-price decimal precision."""
+
+    increment = Decimal("0.01") if value >= Decimal("1") else Decimal("0.0001")
+    rounding = ROUND_CEILING if purpose is OrderPurpose.ENTRY else ROUND_FLOOR
+    return value.quantize(increment, rounding=rounding)
 
 
 @dataclass(frozen=True)
@@ -106,6 +114,7 @@ def build_mleg_order_intent(
 
     if not thesis_id.strip():
         raise ValueError("thesis id is required")
+    normalized_limit_price = _alpaca_limit_price(limit_price, purpose)
     identity = "|".join(
         (
             thesis_id,
@@ -113,7 +122,7 @@ def build_mleg_order_intent(
             spread.long_leg.symbol,
             spread.short_leg.symbol,
             str(spread.quantity),
-            _decimal_string(limit_price),
+            _decimal_string(normalized_limit_price),
         )
     )
     suffix = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:20]
@@ -123,6 +132,6 @@ def build_mleg_order_intent(
         client_order_id=client_order_id,
         purpose=purpose,
         spread=spread,
-        limit_price=limit_price,
+        limit_price=normalized_limit_price,
         created_at=created_at,
     )

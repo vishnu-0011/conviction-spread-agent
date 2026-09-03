@@ -10,9 +10,10 @@ with defined-risk vertical debit spreads. A structured AI thesis may recommend a
 trade, but deterministic validation, portfolio limits, and an execution kill
 switch have final authority.
 
-> Current milestone: the Phase 6 decision cockpit is deployed and the Phase 7a paper
-> MLeg gateway is code-complete. Submission remains disabled by default, the one-contract
-> live canary is not authorized, and deterministic risk code retains final authority.
+> Current milestone: the Phase 6 decision cockpit is deployed and the Phase 7b
+> reconciled paper-canary preview is code-complete. Submission remains disabled by
+> default, the one-contract live canary is not authorized, and deterministic risk
+> code retains final authority.
 
 ## Hackathon progress
 
@@ -26,8 +27,8 @@ switch have final authority.
 | Live shadow autonomy and read-only MCP profile | Complete | Live SPY + MCP calls; 64 tests |
 | Structured external AI adapter | Integration-ready | Closed schemas; 70 total tests |
 | Observability and demo cockpit | Complete | Production build, zero audit findings, deployed v1 |
-| Paper execution gateway and order reconciliation | Gateway-ready | 10 focused tests; live canary not authorized |
-| Paper burn-in and controlled canary | Next | One exact one-contract MLeg after approval |
+| Paper execution gateway and order reconciliation | Preview-ready | Flat-account reconciliation and exact-order preview; 89 tests |
+| Paper burn-in and controlled canary | Market-window pending | One exact one-contract MLeg after approval |
 | Fresh judging account and submission | Planned | Broker-confirmed evidence and demo |
 
 See the chronological [build progress](docs/progress.md) and the complete
@@ -49,6 +50,7 @@ See the chronological [build progress](docs/progress.md) and the complete
 - `docs/research/alpaca-platform-research.md` — cited official-platform research.
 - `docs/progress.md` — judge-facing build journal and milestone evidence.
 - `docs/phase-7-paper-canary-readiness.md` — paper gateway safety contract and canary gate.
+- `docs/phase-7b-paper-canary-runbook.md` — exact preview, approval, and session runbook.
 - `lessons/` — short, project-linked lessons for understanding and defending the build.
 - `mcp/` — pinned read-only Alpaca MCP v2 profile with trading tools omitted.
 - `dashboard/` — judge-facing decision cockpit with no broker-write surface.
@@ -90,6 +92,17 @@ Run one authenticated GET-only live shadow decision:
 $env:PYTHONPATH = "src"
 python scripts/shadow_scan.py --underlying SPY
 ```
+
+Build a GET-only, broker-reconciled one-contract preview:
+
+```powershell
+$env:PYTHONPATH = "src"
+python scripts/paper_canary.py --underlying IWM
+```
+
+The command cannot submit unless the submit flag, four explicit runtime gates, every
+market/data/risk check, and an interactive exact-order confirmation all agree. See
+the [Phase 7b runbook](docs/phase-7b-paper-canary-runbook.md).
 
 See the [Phase 5a runbook](docs/phase-5-shadow-mode.md) for the output guide and
 read-only Alpaca MCP setup.

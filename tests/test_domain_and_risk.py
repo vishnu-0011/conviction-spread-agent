@@ -202,6 +202,17 @@ class RiskTests(unittest.TestCase):
 
 
 class OrderIntentTests(unittest.TestCase):
+    def test_entry_debit_is_rounded_up_to_alpaca_limit_precision(self) -> None:
+        order = build_mleg_order_intent(
+            thesis_id="precision-test",
+            spread=valid_spread(),
+            purpose=OrderPurpose.ENTRY,
+            limit_price=Decimal("1.234"),
+            created_at=NOW,
+        )
+        self.assertEqual(order.limit_price, Decimal("1.24"))
+        self.assertEqual(order.as_alpaca_payload()["limit_price"], "1.24")
+
     def test_entry_payload_is_atomic_debit_with_opening_intents(self) -> None:
         intent = build_mleg_order_intent(
             thesis_id="thesis-001",
