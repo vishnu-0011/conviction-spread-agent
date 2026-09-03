@@ -413,6 +413,36 @@ Build the pre-canary portfolio/open-order reconciliation and exact-order preview
 request explicit approval for a one-contract development-paper MLeg submission during
 a healthy market window.
 
+## Maintenance — Windows timezone portability
+
+**Date:** 2026-09-03
+**Status:** Complete
+
+### Issue and fix
+
+- The shadow runner failed on Windows before contacting Alpaca because Python's
+  standard library could not resolve `America/New_York` without an installed IANA
+  timezone database.
+- Added and pinned `tzdata==2026.3` as a project dependency.
+- Installed the dependency in the repository virtual environment and confirmed
+  `ZoneInfo("America/New_York")` loads successfully.
+- Added the missing environment-install step to the main runbook.
+
+### Live verification
+
+- The authenticated GET-only shadow scan completed with exit code 0.
+- It processed 97 completed SPY bars and observed an IEX reference price of $765.20.
+- The deterministic agent returned PASS because relative volume was below its entry
+  threshold; the market was also closed.
+- No option spread, risk approval, order payload, or broker write was produced.
+- Sanitized evidence: `docs/evidence/2026-09-03-shadow-pass.json`.
+- All 80 tests pass in the corrected virtual environment.
+
+### Next task
+
+Run another shadow scan during a healthy US market window, then complete the Phase 7b
+pre-canary position/open-order reconciliation and exact one-contract order preview.
+
 ## Update format for future tasks
 
 Every completed task should add an entry containing:

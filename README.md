@@ -55,6 +55,16 @@ See the chronological [build progress](docs/progress.md) and the complete
 - `src/conviction_spread_agent/` — domain, agent, shadow, and risk-policy code.
 - `tests/` — dependency-free unit tests for safety-critical calculations.
 
+## Install the Python environment
+
+On Windows, install the project into its virtual environment before running a scan.
+This also installs the pinned IANA timezone database required for New York market time:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e .
+```
+
 ## Run the current tests
 
 ```powershell

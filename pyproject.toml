@@ -10,7 +10,10 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Hackathon Team" }]
-dependencies = ["alpaca-py==0.44.0"]
+dependencies = [
+  "alpaca-py==0.44.0",
+  "tzdata==2026.3",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

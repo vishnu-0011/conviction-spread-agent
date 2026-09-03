@@ -1,0 +1,90 @@
+{
+  "agent": {
+    "critic": {
+      "action": "reject",
+      "confidence_cap": "0",
+      "reasons": [
+        "directional regime is not sufficiently aligned"
+      ]
+    },
+    "final_confidence": "0",
+    "final_direction": "pass",
+    "proposal": {
+      "confidence": "0",
+      "counter_evidence": [
+        "realized_vol=0.004537",
+        "atr=5.088571",
+        "relative_strength=0"
+      ],
+      "direction": "pass",
+      "evidence": [
+        "regime=bear",
+        "fast_trend=-0.001058",
+        "slow_trend=-0.006054",
+        "relative_volume=0.764447"
+      ],
+      "invalidation": "Do not trade until regime and volume gates align.",
+      "summary": "SPY shadow thesis: relative volume below minimum.",
+      "valid_for_minutes": 30
+    },
+    "provider": "deterministic-shadow-v1",
+    "provider_metadata": {},
+    "provider_role": "transparent deterministic test double",
+    "valid_until": "2026-09-03T05:00:19.975294+00:00"
+  },
+  "data": {
+    "candidate_count": 0,
+    "candidate_parse_failures": 0,
+    "data_healthy": true,
+    "market_open": false,
+    "option_feed": "indicative",
+    "stock_feed": "iex",
+    "underlying_price": "765.2"
+  },
+  "decision_id": "shadow-e8b53fe3c19bfff79037",
+  "features": {
+    "as_of": "2026-09-02T04:00:00+00:00",
+    "atr": "5.088571",
+    "feature_set_version": "2026.08.24.v1",
+    "realized_vol": "0.004537",
+    "regime": "bear",
+    "relative_strength": "0",
+    "relative_volume": "0.764447",
+    "source_bar_count": 97,
+    "source_bar_first": "2026-04-16T04:00:00+00:00",
+    "source_bar_last": "2026-09-02T04:00:00+00:00",
+    "symbol": "SPY",
+    "trend_fast": "-0.001058",
+    "trend_slow": "-0.006054"
+  },
+  "generated_at": "2026-09-03T04:30:19.975294+00:00",
+  "mode": "paper-shadow-read-only",
+  "outcome": "pass",
+  "risk": null,
+  "safety": {
+    "account_identifier_emitted": false,
+    "broker_reconciled": false,
+    "broker_writes_possible": false,
+    "dry_run": true,
+    "equity_available_for_internal_sizing": true,
+    "equity_value_emitted": false,
+    "execution_enabled": false,
+    "options_buying_power_available": true,
+    "order_payload_emitted": false,
+    "paper_only": true,
+    "read_only_client": true
+  },
+  "schema_version": "phase-5a.shadow.v1",
+  "selection": {
+    "candidates_considered": 0,
+    "eligible_contracts": 0,
+    "method": null,
+    "pairs_considered": 0,
+    "rejection_reasons": [
+      "a PASS direction cannot construct a spread"
+    ],
+    "selected": false,
+    "selection_score": null,
+    "spread": null
+  }
+}
