@@ -483,6 +483,43 @@ After the 15-minute opening gate, create a fresh IWM preview. If and only if eve
 gate passes, obtain exact operator confirmation and submit the single paper MLeg,
 then preserve the broker-confirmed receipt and performance evidence.
 
+## Phase 7c — broker-confirmed paper performance reporting
+
+**Date:** 2026-09-03
+**Status:** Complete; live GET-only baseline verified
+
+### Shipped behavior
+
+- Added GET-only reads for all paper orders, exact client-order-ID lookup, and
+  intraday portfolio history.
+- Added a sanitized performance report covering account day P&L, strategy order
+  statuses and fill rate, nested MLeg legs, current positions, unrealized P&L, and
+  portfolio-history points.
+- Isolated agent orders with the deterministic `csa-` client-order-ID namespace.
+- Replaced full Alpaca account and broker order IDs with short SHA-256 fingerprints.
+- Added `scripts/paper_report.py`, which refuses to run unless `ALPACA_PAPER=true`.
+
+### Verification
+
+- All 93 tests pass and Python compilation succeeds.
+- A live GET-only run completed successfully against the paper environment.
+- The broker-derived result was saved only under ignored `data/private/`; the public
+  verification file contains test and safety evidence without account metadata.
+
+### Safety and account impact
+
+- The reporting command exposes no POST, PATCH, DELETE, cancel, replace, or exercise
+  operation.
+- No broker write occurred and no credential or full account identifier was emitted.
+- The clean report is a baseline, not a claim of trading performance.
+
+### Next task
+
+During the regular US session and after the opening gate, refresh the preview. Submit
+one paper MLeg only if fresh quotes, thesis, spread selection, risk, reconciliation,
+runtime gates, and exact operator confirmation all agree. Immediately read the order
+back by client order ID and preserve its broker-confirmed lifecycle evidence.
+
 ## Update format for future tasks
 
 Every completed task should add an entry containing:

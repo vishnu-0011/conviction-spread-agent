@@ -10,10 +10,10 @@ with defined-risk vertical debit spreads. A structured AI thesis may recommend a
 trade, but deterministic validation, portfolio limits, and an execution kill
 switch have final authority.
 
-> Current milestone: the Phase 6 decision cockpit is deployed and the Phase 7b
-> reconciled paper-canary preview is code-complete. Submission remains disabled by
-> default, the one-contract live canary is not authorized, and deterministic risk
-> code retains final authority.
+> Current milestone: the Phase 6 decision cockpit is deployed, the Phase 7b
+> reconciled canary preview is code-complete, and Phase 7c can produce a sanitized
+> broker-confirmed performance report. Submission remains disabled by default; the
+> one-contract live canary still requires every gate and exact operator approval.
 
 ## Hackathon progress
 
@@ -27,7 +27,7 @@ switch have final authority.
 | Live shadow autonomy and read-only MCP profile | Complete | Live SPY + MCP calls; 64 tests |
 | Structured external AI adapter | Integration-ready | Closed schemas; 70 total tests |
 | Observability and demo cockpit | Complete | Production build, zero audit findings, deployed v1 |
-| Paper execution gateway and order reconciliation | Preview-ready | Flat-account reconciliation and exact-order preview; 89 tests |
+| Paper execution, reconciliation, and reporting | Preview-ready | Flat-account preview plus GET-only broker report; 93 tests |
 | Paper burn-in and controlled canary | Market-window pending | One exact one-contract MLeg after approval |
 | Fresh judging account and submission | Planned | Broker-confirmed evidence and demo |
 
@@ -51,6 +51,7 @@ See the chronological [build progress](docs/progress.md) and the complete
 - `docs/progress.md` — judge-facing build journal and milestone evidence.
 - `docs/phase-7-paper-canary-readiness.md` — paper gateway safety contract and canary gate.
 - `docs/phase-7b-paper-canary-runbook.md` — exact preview, approval, and session runbook.
+- `docs/phase-7c-paper-reporting.md` — broker-confirmed status and performance evidence.
 - `lessons/` — short, project-linked lessons for understanding and defending the build.
 - `mcp/` — pinned read-only Alpaca MCP v2 profile with trading tools omitted.
 - `dashboard/` — judge-facing decision cockpit with no broker-write surface.
@@ -100,6 +101,13 @@ $env:PYTHONPATH = "src"
 python scripts/paper_canary.py --underlying IWM
 ```
 
+Create a sanitized, GET-only report from the paper broker after a preview or canary:
+
+```powershell
+$env:PYTHONPATH = "src"
+python scripts/paper_report.py --output data/private/paper-performance.json
+```
+
 The command cannot submit unless the submit flag, four explicit runtime gates, every
 market/data/risk check, and an interactive exact-order confirmation all agree. See
 the [Phase 7b runbook](docs/phase-7b-paper-canary-runbook.md).
@@ -131,9 +139,9 @@ npm install
 npm run dev
 ```
 
-The first version replays a sanitized live shadow decision. It does not claim a
-fill or continuously refresh because the paper execution gateway and broker
-reconciliation are Phase 7 work.
+The current deployed version replays a sanitized live shadow decision. Broker status
+and performance are produced by the Phase 7c CLI and are not yet streamed into this
+owner-only dashboard.
 
 ## Safety notice
 

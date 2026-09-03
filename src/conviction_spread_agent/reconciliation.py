@@ -8,6 +8,7 @@ come from the exact preview approved by the operator.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 import hashlib
 import json
@@ -115,13 +116,71 @@ class AlpacaPaperStateClient:
         return tuple(item for item in payload if isinstance(item, dict))
 
     def open_orders(self) -> tuple[dict[str, Any], ...]:
+        return self.orders(status="open")
+
+    def orders(
+        self,
+        *,
+        status: str = "all",
+        after: datetime | None = None,
+    ) -> tuple[dict[str, Any], ...]:
+        if status not in {"open", "closed", "all"}:
+            raise ValueError("order status must be open, closed, or all")
+        if after is not None and (
+            after.tzinfo is None or after.utcoffset() is None
+        ):
+            raise ValueError("order after timestamp must be timezone-aware")
         payload = self.__get(
             "/v2/orders",
-            query={"status": "open", "nested": "true", "limit": 500},
+            query={
+                "status": status,
+                "nested": "true",
+                "limit": 500,
+                "direction": "asc",
+                "after": after.isoformat() if after is not None else None,
+            },
         )
         if not isinstance(payload, list):
-            raise AlpacaReconciliationError("open-orders response is not an array")
+            raise AlpacaReconciliationError("orders response is not an array")
         return tuple(item for item in payload if isinstance(item, dict))
+
+    def order_by_client_order_id(self, client_order_id: str) -> dict[str, Any] | None:
+        normalized = client_order_id.strip()
+        if not normalized:
+            raise ValueError("client order id is required")
+        try:
+            payload = self.__get(
+                "/v2/orders:by_client_order_id",
+                query={"client_order_id": normalized},
+            )
+        except AlpacaReconciliationError as exc:
+            if "HTTP 404" in str(exc):
+                return None
+            raise
+        if not isinstance(payload, dict):
+            raise AlpacaReconciliationError("order response is not an object")
+        return payload
+
+    def portfolio_history(
+        self,
+        *,
+        period: str = "1D",
+        timeframe: str = "5Min",
+    ) -> dict[str, Any]:
+        payload = self.__get(
+            "/v2/account/portfolio/history",
+            query={
+                "period": period,
+                "timeframe": timeframe,
+                "intraday_reporting": "market_hours",
+                "pnl_reset": "per_day",
+            },
+        )
+        if not isinstance(payload, dict):
+            raise AlpacaReconciliationError(
+                "portfolio-history response is not an object"
+            )
+        return payload
 
 
 def _decimal(value: object, *, field: str) -> Decimal | None:
