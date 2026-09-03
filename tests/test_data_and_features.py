@@ -4,7 +4,11 @@ from decimal import Decimal
 from pathlib import Path
 import unittest
 
-from conviction_spread_agent.data.adapters import parse_alpaca_bar, parse_alpaca_bars
+from conviction_spread_agent.data.adapters import (
+    parse_alpaca_bar,
+    parse_alpaca_bars,
+    parse_alpaca_bars_before,
+)
 from conviction_spread_agent.data.bars import Bar, BarSeries
 from conviction_spread_agent.features.engine import FeatureConfig, MarketRegime, compute_features
 
@@ -49,6 +53,23 @@ class BarAdapterTests(unittest.TestCase):
         bars = parse_alpaca_bars("SPY", payload)
         self.assertGreaterEqual(len(bars), 90)
         self.assertLess(bars[0].timestamp, bars[-1].timestamp)
+
+    def test_completed_bar_cutoff_excludes_the_in_progress_boundary_bar(self) -> None:
+        cutoff = datetime(2026, 9, 3, 4, 0, tzinfo=timezone.utc)
+        payload = {
+            "bars": [
+                {"t": "2026-09-02T04:00:00Z", "o": 100, "h": 102, "l": 99, "c": 101, "v": 1000},
+                {"t": "2026-09-03T04:00:00Z", "o": 101, "h": 103, "l": 100, "c": 102, "v": 200},
+            ]
+        }
+
+        bars = parse_alpaca_bars_before("SPY", payload, before=cutoff)
+
+        self.assertEqual(len(bars), 1)
+        self.assertEqual(
+            bars[0].timestamp,
+            datetime(2026, 9, 2, 4, 0, tzinfo=timezone.utc),
+        )
 
 
 class FeatureEngineTests(unittest.TestCase):

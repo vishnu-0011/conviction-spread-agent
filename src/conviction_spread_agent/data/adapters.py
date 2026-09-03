@@ -54,3 +54,18 @@ def parse_alpaca_bars(symbol: str, payload: dict[str, Any]) -> tuple[Bar, ...]:
         raise ValueError("bars response must contain a non-empty list")
     parsed = tuple(parse_alpaca_bar(symbol, item) for item in raw_bars)
     return tuple(sorted(parsed, key=lambda bar: bar.timestamp))
+
+
+def parse_alpaca_bars_before(
+    symbol: str, payload: dict[str, Any], *, before: datetime
+) -> tuple[Bar, ...]:
+    """Parse bars and exclude the boundary/current still-forming period."""
+
+    if before.tzinfo is None or before.utcoffset() is None:
+        raise ValueError("bar cutoff must be timezone-aware")
+    bars = tuple(
+        bar for bar in parse_alpaca_bars(symbol, payload) if bar.timestamp < before
+    )
+    if not bars:
+        raise ValueError("no completed bars are available before the cutoff")
+    return bars

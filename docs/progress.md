@@ -562,6 +562,35 @@ approved paper canary, monitor the exact broker order to fill or terminal state,
 use the close preview when the position is intentionally exited. Capture the final
 GET-only performance report for submission evidence.
 
+## Maintenance — exclude the in-progress daily bar
+
+**Date:** 2026-09-03
+**Status:** Complete; live preview verified
+
+### Issue and fix
+
+- During the open session, Alpaca included the current still-forming daily bar at the
+  requested end boundary.
+- That partial volume was being compared with completed full-day volume, causing a
+  false low-relative-volume PASS decision.
+- Added an explicit exclusive cutoff so feature calculation receives only bars with
+  timestamps strictly before the current session boundary.
+- Added a regression test proving the boundary bar is excluded.
+
+### Verification and safety
+
+- All 103 tests pass and Python compilation succeeds.
+- A post-fix live GET-only IWM preview restored the expected completed-bar bearish
+  thesis and produced a fully risk-approved one-contract spread preview.
+- No order was placed and no broker state changed during diagnosis or verification.
+- Detailed live output remains under ignored `data/private/`.
+
+### Next task
+
+If the operator chooses to proceed, rerun the submission command so quotes and risk
+are recalculated, review the new exact payload, and authorize only that one paper
+order. Then capture its broker-confirmed status with the GET-only report.
+
 ## Update format for future tasks
 
 Every completed task should add an entry containing:

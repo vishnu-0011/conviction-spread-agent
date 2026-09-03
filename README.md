@@ -28,7 +28,7 @@ switch have final authority.
 | Live shadow autonomy and read-only MCP profile | Complete | Live SPY + MCP calls; 64 tests |
 | Structured external AI adapter | Integration-ready | Closed schemas; 70 total tests |
 | Observability and demo cockpit | Complete | Production build, zero audit findings, deployed v1 |
-| Paper execution, reconciliation, reporting, and close | Preview-ready | Exact entry/exit lifecycle plus broker report; 102 tests |
+| Paper execution, reconciliation, reporting, and close | Preview-ready | Exact entry/exit lifecycle plus broker report; 103 tests |
 | Paper burn-in and controlled canary | Market-window pending | One exact one-contract MLeg after approval |
 | Fresh judging account and submission | Planned | Broker-confirmed evidence and demo |
 

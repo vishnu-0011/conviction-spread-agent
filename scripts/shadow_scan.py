@@ -22,7 +22,7 @@ from conviction_spread_agent.alpaca_readonly import (
     AlpacaReadError,
     AlpacaReadOnlyClient,
 )
-from conviction_spread_agent.data.adapters import parse_alpaca_bars
+from conviction_spread_agent.data.adapters import parse_alpaca_bars_before
 from conviction_spread_agent.data.bars import BarSeries
 from conviction_spread_agent.domain import Direction
 from conviction_spread_agent.features.engine import compute_features
@@ -137,7 +137,7 @@ def _load_series(
     feed: str,
 ) -> BarSeries:
     payload = client.stock_bars(symbol, start=start, end=end, feed=feed)
-    bars = parse_alpaca_bars(symbol, payload)
+    bars = parse_alpaca_bars_before(symbol, payload, before=end)
     return BarSeries(symbol=symbol, bars=bars)
 
 
