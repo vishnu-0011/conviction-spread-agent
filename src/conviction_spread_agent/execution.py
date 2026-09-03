@@ -86,6 +86,7 @@ class ExecutionAuthorization:
     broker_reconciled: bool = False
     kill_switch: bool = True
     operator_canary_approved: bool = False
+    market_open: bool = False
     maximum_contracts: int = 1
     valid_until: datetime | None = None
     client_order_id: str | None = None
@@ -99,6 +100,7 @@ class ExecutionAuthorization:
             (self.broker_reconciled, "broker reconciled"),
             (self.kill_switch, "kill switch"),
             (self.operator_canary_approved, "operator canary approved"),
+            (self.market_open, "market open"),
         ):
             if type(value) is not bool:
                 raise TypeError(f"{field} authorization must be boolean")
@@ -491,6 +493,8 @@ class PaperExecutionGateway:
         broker_order_id: str | None = None,
         filled: int | None = None,
         reason: str | None = None,
+        exit_client_order_id: str | None = None,
+        exit_payload_sha256: str | None = None,
     ) -> LifecycleEvent:
         identity = "|".join(
             (
@@ -500,6 +504,8 @@ class PaperExecutionGateway:
                 broker_order_id or "",
                 str(filled) if filled is not None else "",
                 reason or "",
+                exit_client_order_id or "",
+                exit_payload_sha256 or "",
             )
         )
         return LifecycleEvent(
@@ -510,6 +516,8 @@ class PaperExecutionGateway:
             broker_order_id=broker_order_id,
             cumulative_filled_quantity=filled,
             reason=reason,
+            exit_client_order_id=exit_client_order_id,
+            exit_payload_sha256=exit_payload_sha256,
         )
 
     def _persist_event(
@@ -628,6 +636,153 @@ class PaperExecutionGateway:
             )
 
         raise ValueError(f"cannot apply broker status {view.status.value}")
+
+    def _exit_authorization_reasons(
+        self,
+        intent: MlegOrderIntent,
+        authorization: ExecutionAuthorization,
+        lifecycle: LifecycleSnapshot,
+        now: datetime,
+    ) -> tuple[str, ...]:
+        reasons: list[str] = []
+        clock_is_aware = now.tzinfo is not None and now.utcoffset() is not None
+        if not clock_is_aware:
+            reasons.append("gateway clock is not timezone-aware")
+        if not self._submission_enabled:
+            reasons.append("paper submission gateway is disabled")
+        if not authorization.paper_trading:
+            reasons.append("authorization is not restricted to paper trading")
+        if not authorization.submission_enabled:
+            reasons.append("authorization does not enable submission")
+        if authorization.dry_run:
+            reasons.append("authorization remains in dry-run mode")
+        if not authorization.broker_reconciled:
+            reasons.append("authorization lacks broker reconciliation")
+        if not authorization.operator_canary_approved:
+            reasons.append("operator has not approved the exact paper close")
+        if not authorization.market_open:
+            reasons.append("paper close requires an open market session")
+        if authorization.maximum_contracts != 1:
+            reasons.append("paper close authorization must be exactly one contract")
+        if authorization.valid_until is None:
+            reasons.append("authorization expiry is required")
+        elif clock_is_aware:
+            authorization_horizon = (authorization.valid_until - now).total_seconds()
+            if authorization_horizon <= 0:
+                reasons.append("paper close authorization has expired")
+            elif authorization_horizon > self._maximum_authorization_horizon_seconds:
+                reasons.append("paper close authorization is not short-lived")
+        if authorization.client_order_id != intent.client_order_id:
+            reasons.append("authorization client order id does not match the exit intent")
+        if authorization.payload_sha256 != intent.payload_sha256:
+            reasons.append("authorization payload hash does not match the exit intent")
+        if intent.purpose is not OrderPurpose.EXIT:
+            reasons.append("close gateway requires an exit intent")
+        if intent.spread.quantity != 1:
+            reasons.append("paper close is limited to one contract")
+        if lifecycle.state is not LifecycleState.OPEN:
+            reasons.append("lifecycle is not in the open state")
+        if lifecycle.active_quantity != intent.spread.quantity:
+            reasons.append("open lifecycle quantity does not match the exit intent")
+        if lifecycle.exit_client_order_id is not None:
+            reasons.append("lifecycle already contains an exit order")
+        if clock_is_aware:
+            for leg in (intent.spread.long_leg, intent.spread.short_leg):
+                quote_age = (now - leg.quote.observed_at).total_seconds()
+                if quote_age < -5 or quote_age > 15:
+                    reasons.append(
+                        f"exit quote for {leg.symbol} is stale or future-dated"
+                    )
+        stored = self._store.load(lifecycle.client_order_id)
+        if stored is None:
+            reasons.append("open lifecycle is not durably stored")
+        elif stored != lifecycle:
+            reasons.append("stored lifecycle differs from the close snapshot")
+        # A kill switch blocks new exposure, but must not prevent a risk-reducing exit.
+        return tuple(dict.fromkeys(reasons))
+
+    def _apply_exit_receipt(
+        self,
+        snapshot: LifecycleSnapshot,
+        receipt: BrokerOrderReceipt,
+        now: datetime,
+    ) -> LifecycleSnapshot:
+        view = receipt.view
+        broker_id = view.broker_order_id
+        assert broker_id is not None
+
+        if view.status in {BrokerOrderStatus.NEW, BrokerOrderStatus.PARTIALLY_FILLED}:
+            if (
+                view.status is BrokerOrderStatus.PARTIALLY_FILLED
+                and view.filled_quantity <= 0
+            ):
+                raise ValueError("partially filled broker exit has zero filled quantity")
+            if snapshot.state is LifecycleState.CLOSE_SUBMITTING:
+                snapshot = self._persist_event(
+                    snapshot,
+                    LifecycleEventType.CLOSE_ACKNOWLEDGED,
+                    now,
+                    broker_order_id=broker_id,
+                )
+            if view.filled_quantity > snapshot.exit_filled_quantity:
+                event_type = (
+                    LifecycleEventType.EXIT_FILLED
+                    if view.filled_quantity == snapshot.entry_filled_quantity
+                    else LifecycleEventType.EXIT_PARTIAL_FILL
+                )
+                snapshot = self._persist_event(
+                    snapshot,
+                    event_type,
+                    now,
+                    broker_order_id=broker_id,
+                    filled=view.filled_quantity,
+                )
+            return snapshot
+
+        if view.status is BrokerOrderStatus.FILLED:
+            if view.filled_quantity != snapshot.entry_filled_quantity:
+                raise ValueError("filled broker exit does not equal the open quantity")
+            if snapshot.state is LifecycleState.CLOSED:
+                return snapshot
+            return self._persist_event(
+                snapshot,
+                LifecycleEventType.EXIT_FILLED,
+                now,
+                broker_order_id=broker_id,
+                filled=view.filled_quantity,
+            )
+
+        if view.status in {BrokerOrderStatus.CANCELED, BrokerOrderStatus.REJECTED}:
+            if view.filled_quantity > snapshot.exit_filled_quantity:
+                if snapshot.state is LifecycleState.CLOSE_SUBMITTING:
+                    snapshot = self._persist_event(
+                        snapshot,
+                        LifecycleEventType.CLOSE_ACKNOWLEDGED,
+                        now,
+                        broker_order_id=broker_id,
+                    )
+                fill_event = (
+                    LifecycleEventType.EXIT_FILLED
+                    if view.filled_quantity == snapshot.entry_filled_quantity
+                    else LifecycleEventType.EXIT_PARTIAL_FILL
+                )
+                snapshot = self._persist_event(
+                    snapshot,
+                    fill_event,
+                    now,
+                    broker_order_id=broker_id,
+                    filled=view.filled_quantity,
+                )
+            if snapshot.active_quantity == 0:
+                return snapshot
+            return self._persist_event(
+                snapshot,
+                LifecycleEventType.BROKER_MISMATCH,
+                now,
+                reason="broker exit became terminal with remaining exposure",
+            )
+
+        raise ValueError(f"cannot apply broker exit status {view.status.value}")
 
     def submit_entry(
         self,
@@ -754,6 +909,146 @@ class PaperExecutionGateway:
                 reasons=(
                     updated.failure_reason
                     or "broker order still requires manual reconciliation",
+                ),
+            )
+        return ReconciliationResult(
+            lifecycle=updated,
+            broker_status=receipt.view.status,
+            consistent=True,
+            reasons=(),
+        )
+
+    def submit_exit(
+        self,
+        intent: MlegOrderIntent,
+        authorization: ExecutionAuthorization,
+        lifecycle: LifecycleSnapshot,
+    ) -> SubmissionResult:
+        """Submit one exact risk-reducing MLeg close; never retry uncertainty."""
+
+        now = self._clock()
+        reasons = self._exit_authorization_reasons(
+            intent, authorization, lifecycle, now
+        )
+        if reasons:
+            raise ExecutionBlocked(reasons)
+        submitting = self._persist_event(
+            lifecycle,
+            LifecycleEventType.CLOSE_SUBMIT_REQUESTED,
+            now,
+            exit_client_order_id=intent.client_order_id,
+            exit_payload_sha256=intent.payload_sha256,
+        )
+        try:
+            raw = self._client.submit_mleg(intent)
+            receipt = parse_broker_order(raw, intent)
+            updated = self._apply_exit_receipt(submitting, receipt, self._clock())
+        except AlpacaExecutionError as exc:
+            event_type = (
+                LifecycleEventType.BROKER_MISMATCH
+                if exc.outcome_unknown
+                else LifecycleEventType.TERMINAL_FAILURE
+            )
+            reason = (
+                "close outcome is unknown; reconcile by exit client order id"
+                if exc.outcome_unknown
+                else "Alpaca rejected the paper close request"
+            )
+            self._persist_event(submitting, event_type, self._clock(), reason=reason)
+            raise
+        except (ValueError, KeyError) as exc:
+            self._persist_event(
+                submitting,
+                LifecycleEventType.BROKER_MISMATCH,
+                self._clock(),
+                reason="broker response could not be matched to the submitted exit",
+            )
+            raise AlpacaExecutionError(
+                "Alpaca POST returned an invalid exit response",
+                outcome_unknown=True,
+            ) from exc
+
+        broker_id = receipt.view.broker_order_id
+        assert broker_id is not None
+        return SubmissionResult(
+            lifecycle=updated,
+            broker_order_id=broker_id,
+            broker_status=receipt.view.status,
+            response_sha256=receipt.response_sha256,
+        )
+
+    def reconcile_exit(
+        self,
+        intent: MlegOrderIntent,
+        lifecycle: LifecycleSnapshot,
+    ) -> ReconciliationResult:
+        """Recover an exit by exact ID lookup only; never resubmit automatically."""
+
+        stored = self._store.load(lifecycle.client_order_id)
+        if stored is None or stored != lifecycle:
+            raise ExecutionBlocked(
+                ("lifecycle must match durable state before exit reconciliation",)
+            )
+        if lifecycle.exit_client_order_id != intent.client_order_id:
+            raise ExecutionBlocked(("stored exit client order id does not match",))
+        if lifecycle.exit_payload_sha256 != intent.payload_sha256:
+            raise ExecutionBlocked(("stored exit payload hash does not match",))
+        raw = self._client.get_by_client_order_id(intent.client_order_id)
+        if raw is None:
+            return ReconciliationResult(
+                lifecycle=lifecycle,
+                broker_status=BrokerOrderStatus.NOT_FOUND,
+                consistent=False,
+                reasons=(
+                    "broker exit was not found; automatic resubmission is prohibited",
+                ),
+            )
+        try:
+            receipt = parse_broker_order(raw, intent)
+        except (ValueError, KeyError) as exc:
+            if lifecycle.state is not LifecycleState.RECONCILE_REQUIRED:
+                lifecycle = self._persist_event(
+                    lifecycle,
+                    LifecycleEventType.BROKER_MISMATCH,
+                    self._clock(),
+                    reason="broker exit does not match the durable intent",
+                )
+            return ReconciliationResult(
+                lifecycle=lifecycle,
+                broker_status=BrokerOrderStatus.NOT_FOUND,
+                consistent=False,
+                reasons=(str(exc),),
+            )
+
+        working = lifecycle
+        if working.state is LifecycleState.RECONCILE_REQUIRED:
+            working = self._persist_event(
+                working, LifecycleEventType.RECONCILED, self._clock()
+            )
+        try:
+            updated = self._apply_exit_receipt(working, receipt, self._clock())
+        except ValueError as exc:
+            if working.state is not LifecycleState.RECONCILE_REQUIRED:
+                working = self._persist_event(
+                    working,
+                    LifecycleEventType.BROKER_MISMATCH,
+                    self._clock(),
+                    reason="broker exit lifecycle cannot be applied safely",
+                )
+            return ReconciliationResult(
+                lifecycle=working,
+                broker_status=receipt.view.status,
+                consistent=False,
+                reasons=(str(exc),),
+            )
+        if updated.state is LifecycleState.RECONCILE_REQUIRED:
+            return ReconciliationResult(
+                lifecycle=updated,
+                broker_status=receipt.view.status,
+                consistent=False,
+                reasons=(
+                    updated.failure_reason
+                    or "broker exit still requires manual reconciliation",
                 ),
             )
         return ReconciliationResult(

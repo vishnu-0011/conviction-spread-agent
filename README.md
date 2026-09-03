@@ -12,8 +12,9 @@ switch have final authority.
 
 > Current milestone: the Phase 6 decision cockpit is deployed, the Phase 7b
 > reconciled canary preview is code-complete, and Phase 7c can produce a sanitized
-> broker-confirmed performance report. Submission remains disabled by default; the
-> one-contract live canary still requires every gate and exact operator approval.
+> broker-confirmed performance report. Phase 7d adds an exact, position-reconciled
+> close path. Entry and close submission remain disabled by default and require
+> separate exact operator approvals.
 
 ## Hackathon progress
 
@@ -27,7 +28,7 @@ switch have final authority.
 | Live shadow autonomy and read-only MCP profile | Complete | Live SPY + MCP calls; 64 tests |
 | Structured external AI adapter | Integration-ready | Closed schemas; 70 total tests |
 | Observability and demo cockpit | Complete | Production build, zero audit findings, deployed v1 |
-| Paper execution, reconciliation, and reporting | Preview-ready | Flat-account preview plus GET-only broker report; 93 tests |
+| Paper execution, reconciliation, reporting, and close | Preview-ready | Exact entry/exit lifecycle plus broker report; 102 tests |
 | Paper burn-in and controlled canary | Market-window pending | One exact one-contract MLeg after approval |
 | Fresh judging account and submission | Planned | Broker-confirmed evidence and demo |
 
@@ -52,6 +53,7 @@ See the chronological [build progress](docs/progress.md) and the complete
 - `docs/phase-7-paper-canary-readiness.md` — paper gateway safety contract and canary gate.
 - `docs/phase-7b-paper-canary-runbook.md` — exact preview, approval, and session runbook.
 - `docs/phase-7c-paper-reporting.md` — broker-confirmed status and performance evidence.
+- `docs/phase-7d-paper-close-runbook.md` — exact-leg, position-reconciled close path.
 - `lessons/` — short, project-linked lessons for understanding and defending the build.
 - `mcp/` — pinned read-only Alpaca MCP v2 profile with trading tools omitted.
 - `dashboard/` — judge-facing decision cockpit with no broker-write surface.
@@ -106,6 +108,13 @@ Create a sanitized, GET-only report from the paper broker after a preview or can
 ```powershell
 $env:PYTHONPATH = "src"
 python scripts/paper_report.py --output data/private/paper-performance.json
+```
+
+After a broker-confirmed fill, preview the exact risk-reducing close:
+
+```powershell
+$env:PYTHONPATH = "src"
+python scripts/paper_close.py --entry-record data/private/paper-canary-submission.json
 ```
 
 The command cannot submit unless the submit flag, four explicit runtime gates, every

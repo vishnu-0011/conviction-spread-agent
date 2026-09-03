@@ -70,6 +70,38 @@ def intent(quantity: int = 1):
     )
 
 
+def exit_intent(quantity: int = 1, *, observed_at: datetime | None = None):
+    current = spread(quantity)
+    observed = observed_at or (NOW - timedelta(seconds=1))
+    repriced = VerticalSpread(
+        long_leg=OptionLeg(
+            symbol=current.long_leg.symbol,
+            underlying=current.long_leg.underlying,
+            right=current.long_leg.right,
+            expiration=current.long_leg.expiration,
+            strike=current.long_leg.strike,
+            quote=Quote(Decimal("3.90"), Decimal("4.00"), observed),
+        ),
+        short_leg=OptionLeg(
+            symbol=current.short_leg.symbol,
+            underlying=current.short_leg.underlying,
+            right=current.short_leg.right,
+            expiration=current.short_leg.expiration,
+            strike=current.short_leg.strike,
+            quote=Quote(Decimal("2.30"), Decimal("2.40"), observed),
+        ),
+        net_debit=current.net_debit,
+        quantity=quantity,
+    )
+    return build_mleg_order_intent(
+        thesis_id="phase7-canary",
+        spread=repriced,
+        purpose=OrderPurpose.EXIT,
+        limit_price=Decimal("1.50"),
+        created_at=NOW - timedelta(seconds=1),
+    )
+
+
 def approved_lifecycle(order_intent):
     initial = start_lifecycle(order_intent)
     return apply_event(
@@ -78,6 +110,28 @@ def approved_lifecycle(order_intent):
             event_id="risk-approved",
             event_type=LifecycleEventType.RISK_APPROVED,
             occurred_at=NOW - timedelta(seconds=4),
+        ),
+    )
+
+
+def open_lifecycle(order_intent):
+    snapshot = approved_lifecycle(order_intent)
+    snapshot = apply_event(
+        snapshot,
+        LifecycleEvent(
+            event_id="entry-submit",
+            event_type=LifecycleEventType.ENTRY_SUBMIT_REQUESTED,
+            occurred_at=NOW - timedelta(seconds=3),
+        ),
+    )
+    return apply_event(
+        snapshot,
+        LifecycleEvent(
+            event_id="entry-filled",
+            event_type=LifecycleEventType.ENTRY_FILLED,
+            occurred_at=NOW - timedelta(seconds=2),
+            broker_order_id="broker-entry",
+            cumulative_filled_quantity=order_intent.spread.quantity,
         ),
     )
 
@@ -99,6 +153,24 @@ def authorization(order_intent, **changes: object) -> ExecutionAuthorization:
         "broker_reconciled": True,
         "kill_switch": False,
         "operator_canary_approved": True,
+        "maximum_contracts": 1,
+        "valid_until": NOW + timedelta(minutes=1),
+        "client_order_id": order_intent.client_order_id,
+        "payload_sha256": order_intent.payload_sha256,
+    }
+    values.update(changes)
+    return ExecutionAuthorization(**values)
+
+
+def exit_authorization(order_intent, **changes: object) -> ExecutionAuthorization:
+    values = {
+        "paper_trading": True,
+        "submission_enabled": True,
+        "dry_run": False,
+        "broker_reconciled": True,
+        "kill_switch": True,
+        "operator_canary_approved": True,
+        "market_open": True,
         "maximum_contracts": 1,
         "valid_until": NOW + timedelta(minutes=1),
         "client_order_id": order_intent.client_order_id,
@@ -364,6 +436,106 @@ class PaperGatewayTests(unittest.TestCase):
         self.assertFalse(result.consistent)
         self.assertEqual(result.lifecycle.state, LifecycleState.RECONCILE_REQUIRED)
         self.assertEqual(result.lifecycle.active_quantity, 1)
+
+    def test_exit_defaults_block_before_network_io(self) -> None:
+        entry = intent()
+        close = exit_intent()
+        transport = FakeTransport(broker_receipt(close))
+        with TemporaryDirectory() as directory:
+            store = JsonLifecycleStore(directory)
+            lifecycle = open_lifecycle(entry)
+            store.save(lifecycle)
+            gateway = self.make_gateway(transport, store, enabled=False)
+
+            with self.assertRaises(ExecutionBlocked) as raised:
+                gateway.submit_exit(close, ExecutionAuthorization(), lifecycle)
+
+        self.assertIn("paper submission gateway is disabled", raised.exception.reasons)
+        self.assertIn(
+            "operator has not approved the exact paper close",
+            raised.exception.reasons,
+        )
+        self.assertEqual(transport.requests, [])
+
+    def test_authorized_exit_persists_binding_and_acknowledges(self) -> None:
+        entry = intent()
+        close = exit_intent()
+        transport = FakeTransport(broker_receipt(close))
+        with TemporaryDirectory() as directory:
+            store = JsonLifecycleStore(directory)
+            lifecycle = open_lifecycle(entry)
+            store.save(lifecycle)
+            gateway = self.make_gateway(transport, store)
+            result = gateway.submit_exit(
+                close, exit_authorization(close), lifecycle
+            )
+            persisted = store.load(entry.client_order_id)
+
+        self.assertEqual(result.lifecycle.state, LifecycleState.CLOSE_ACKNOWLEDGED)
+        self.assertEqual(persisted.exit_client_order_id, close.client_order_id)
+        self.assertEqual(persisted.exit_payload_sha256, close.payload_sha256)
+        self.assertEqual(transport.requests[0]["method"], "POST")
+        self.assertEqual(transport.requests[0]["body"], close.as_alpaca_payload())
+        self.assertEqual(transport.requests[0]["body"]["limit_price"], "-1.5")
+
+    def test_filled_exit_closes_lifecycle(self) -> None:
+        entry = intent()
+        close = exit_intent()
+        transport = FakeTransport(broker_receipt(close, status="filled", filled="1"))
+        with TemporaryDirectory() as directory:
+            store = JsonLifecycleStore(directory)
+            lifecycle = open_lifecycle(entry)
+            store.save(lifecycle)
+            gateway = self.make_gateway(transport, store)
+            result = gateway.submit_exit(close, exit_authorization(close), lifecycle)
+
+        self.assertEqual(result.lifecycle.state, LifecycleState.CLOSED)
+        self.assertEqual(result.lifecycle.active_quantity, 0)
+
+    def test_stale_exit_quote_and_closed_market_block_without_io(self) -> None:
+        entry = intent()
+        close = exit_intent(observed_at=NOW - timedelta(seconds=16))
+        transport = FakeTransport(broker_receipt(close))
+        with TemporaryDirectory() as directory:
+            store = JsonLifecycleStore(directory)
+            lifecycle = open_lifecycle(entry)
+            store.save(lifecycle)
+            gateway = self.make_gateway(transport, store)
+            with self.assertRaises(ExecutionBlocked) as raised:
+                gateway.submit_exit(
+                    close,
+                    exit_authorization(close, market_open=False),
+                    lifecycle,
+                )
+
+        self.assertIn("paper close requires an open market session", raised.exception.reasons)
+        self.assertTrue(any("stale" in reason for reason in raised.exception.reasons))
+        self.assertEqual(transport.requests, [])
+
+    def test_unknown_exit_outcome_uses_lookup_and_never_resubmits(self) -> None:
+        entry = intent()
+        close = exit_intent()
+        transport = FakeTransport(
+            URLError("connection reset"),
+            broker_receipt(close, status="filled", filled="1"),
+        )
+        with TemporaryDirectory() as directory:
+            store = JsonLifecycleStore(directory)
+            lifecycle = open_lifecycle(entry)
+            store.save(lifecycle)
+            gateway = self.make_gateway(transport, store)
+            with self.assertRaises(AlpacaExecutionError):
+                gateway.submit_exit(close, exit_authorization(close), lifecycle)
+            uncertain = store.load(entry.client_order_id)
+            self.assertEqual(uncertain.state, LifecycleState.RECONCILE_REQUIRED)
+            self.assertEqual(uncertain.resume_state, LifecycleState.CLOSE_SUBMITTING)
+            result = gateway.reconcile_exit(close, uncertain)
+
+        self.assertTrue(result.consistent)
+        self.assertEqual(result.lifecycle.state, LifecycleState.CLOSED)
+        self.assertEqual(
+            [request["method"] for request in transport.requests], ["POST", "GET"]
+        )
 
 
 class ParserAndStoreTests(unittest.TestCase):

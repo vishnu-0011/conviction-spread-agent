@@ -45,7 +45,7 @@ preview after 7:15 p.m. IST:
 
 ~~~powershell
 $env:PYTHONPATH = "src"
-python scripts/paper_canary.py --underlying IWM --output docs/evidence/2026-09-03-iwm-canary-live-preview.json
+python scripts/paper_canary.py --underlying IWM --output data/private/iwm-canary-live-preview.json
 ~~~
 
 Proceed only when the record says:
@@ -68,7 +68,7 @@ $env:CSA_EXECUTION_ENABLED = "true"
 $env:CSA_DRY_RUN = "false"
 $env:CSA_KILL_SWITCH = "false"
 
-python scripts/paper_canary.py --underlying IWM --submit --output docs/evidence/2026-09-03-iwm-canary-submission.json
+python scripts/paper_canary.py --underlying IWM --submit --output data/private/iwm-canary-submission.json
 ~~~
 
 The command prints the exact order first and then asks for:
@@ -92,6 +92,9 @@ $env:CSA_KILL_SWITCH = "true"
 Then verify the exact client order ID and MLeg status in Alpaca's paper dashboard.
 An accepted order is not a fill; only Alpaca's broker status may be presented as
 broker-confirmed.
+
+Keep the complete broker-derived record under ignored `data/private/`. Publish only
+the account metadata and paper results you deliberately choose for the submission.
 
 ## Model-backed variant
 

@@ -1,0 +1,28 @@
+{
+  "schema_version": "phase-7d.close-readiness.v1",
+  "verified_on": "2026-09-03",
+  "verification": {
+    "total_tests": 102,
+    "tests_passed": true,
+    "python_compilation_passed": true,
+    "close_cli_help_passed": true
+  },
+  "covered_scenarios": [
+    "exact entry record reconstruction",
+    "exact two-position reconciliation",
+    "fresh exact-leg quote requirement",
+    "conservative credit MLeg payload",
+    "disabled defaults block before network I/O",
+    "durable exit ID and payload binding before POST",
+    "filled exit closes lifecycle",
+    "unknown POST outcome recovers by GET without resubmission"
+  ],
+  "safety": {
+    "paper_only": true,
+    "submission_default": "disabled",
+    "one_contract_limit": true,
+    "interactive_exact_confirmation": true,
+    "live_broker_write_performed_during_verification": false,
+    "broker_account_metadata_included": false
+  }
+}

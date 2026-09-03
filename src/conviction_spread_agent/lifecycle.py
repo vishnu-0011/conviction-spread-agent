@@ -84,6 +84,8 @@ class LifecycleEvent:
     broker_order_id: str | None = None
     cumulative_filled_quantity: int | None = None
     reason: str | None = None
+    exit_client_order_id: str | None = None
+    exit_payload_sha256: str | None = None
 
     def __post_init__(self) -> None:
         if not self.event_id.strip():
@@ -92,6 +94,15 @@ class LifecycleEvent:
             raise ValueError("event timestamp must be timezone-aware")
         if self.cumulative_filled_quantity is not None and self.cumulative_filled_quantity < 0:
             raise ValueError("cumulative filled quantity cannot be negative")
+        if (self.exit_client_order_id is None) != (self.exit_payload_sha256 is None):
+            raise ValueError("exit client order id and payload hash must be provided together")
+        if self.exit_client_order_id is not None and not self.exit_client_order_id.strip():
+            raise ValueError("exit client order id cannot be blank")
+        if self.exit_payload_sha256 is not None and (
+            len(self.exit_payload_sha256) != 64
+            or any(character not in "0123456789abcdef" for character in self.exit_payload_sha256)
+        ):
+            raise ValueError("exit payload hash must be lowercase SHA-256")
 
 
 @dataclass(frozen=True)
@@ -107,6 +118,8 @@ class LifecycleSnapshot:
     exit_filled_quantity: int = 0
     entry_broker_order_id: str | None = None
     exit_broker_order_id: str | None = None
+    exit_client_order_id: str | None = None
+    exit_payload_sha256: str | None = None
     resume_state: LifecycleState | None = None
     failure_reason: str | None = None
     applied_event_ids: tuple[str, ...] = ()
@@ -134,6 +147,8 @@ class LifecycleSnapshot:
             raise ValueError("reconciliation state requires a resume state")
         if self.state is not LifecycleState.RECONCILE_REQUIRED and self.resume_state is not None:
             raise ValueError("resume state is only valid during reconciliation")
+        if (self.exit_client_order_id is None) != (self.exit_payload_sha256 is None):
+            raise ValueError("exit client order id and payload hash must be stored together")
 
     @property
     def active_quantity(self) -> int:
@@ -152,6 +167,8 @@ class LifecycleSnapshot:
             "exit_filled_quantity": self.exit_filled_quantity,
             "entry_broker_order_id": self.entry_broker_order_id,
             "exit_broker_order_id": self.exit_broker_order_id,
+            "exit_client_order_id": self.exit_client_order_id,
+            "exit_payload_sha256": self.exit_payload_sha256,
             "resume_state": self.resume_state.value if self.resume_state else None,
             "failure_reason": self.failure_reason,
             "applied_event_ids": list(self.applied_event_ids),
@@ -160,6 +177,8 @@ class LifecycleSnapshot:
     @classmethod
     def from_record(cls, record: dict[str, Any]) -> LifecycleSnapshot:
         resume = record.get("resume_state")
+        exit_client_order_id = record.get("exit_client_order_id")
+        exit_payload_sha256 = record.get("exit_payload_sha256")
         return cls(
             client_order_id=str(record["client_order_id"]),
             payload_sha256=str(record["payload_sha256"]),
@@ -172,6 +191,12 @@ class LifecycleSnapshot:
             exit_filled_quantity=int(record.get("exit_filled_quantity", 0)),
             entry_broker_order_id=record.get("entry_broker_order_id"),
             exit_broker_order_id=record.get("exit_broker_order_id"),
+            exit_client_order_id=(
+                str(exit_client_order_id) if exit_client_order_id is not None else None
+            ),
+            exit_payload_sha256=(
+                str(exit_payload_sha256) if exit_payload_sha256 is not None else None
+            ),
             resume_state=LifecycleState(str(resume)) if resume is not None else None,
             failure_reason=record.get("failure_reason"),
             applied_event_ids=tuple(str(item) for item in record.get("applied_event_ids", [])),
@@ -415,7 +440,16 @@ def apply_event(snapshot: LifecycleSnapshot, event: LifecycleEvent) -> Lifecycle
         if event_type is LifecycleEventType.CLOSE_SUBMIT_REQUESTED:
             if snapshot.active_quantity <= 0:
                 raise InvalidLifecycleTransition("no active quantity remains to close")
-            return _advance(snapshot, event, state=LifecycleState.CLOSE_SUBMITTING)
+            changes: dict[str, object] = {}
+            if event.exit_client_order_id is not None:
+                changes["exit_client_order_id"] = event.exit_client_order_id
+                changes["exit_payload_sha256"] = event.exit_payload_sha256
+            return _advance(
+                snapshot,
+                event,
+                state=LifecycleState.CLOSE_SUBMITTING,
+                **changes,
+            )
 
     elif state is LifecycleState.CLOSE_SUBMITTING:
         if event_type is LifecycleEventType.CLOSE_ACKNOWLEDGED:

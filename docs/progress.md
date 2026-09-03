@@ -520,6 +520,48 @@ one paper MLeg only if fresh quotes, thesis, spread selection, risk, reconciliat
 runtime gates, and exact operator confirmation all agree. Immediately read the order
 back by client order ID and preserve its broker-confirmed lifecycle evidence.
 
+## Phase 7d — exact paper close and exit reconciliation
+
+**Date:** 2026-09-03
+**Status:** Code complete; exercised with fake broker transports only
+
+### Shipped behavior
+
+- Added exact reconstruction of the original entry from its saved record, including
+  deterministic client-order-ID and payload-hash verification.
+- Added strict matching of the dedicated paper account to the expected long and
+  short option positions.
+- Added fresh quote retrieval and conservative close credit construction for the
+  exact option legs.
+- Added a separate close authorization gate, exact interactive confirmation, and
+  durable exit client-ID/payload binding before the single POST.
+- Added exit receipt handling and GET-only recovery for unknown POST outcomes.
+- Added explicit saved-exit reconstruction so a recovery run cannot confuse the
+  filled entry with an uncertain close or resubmit it.
+- Kept risk-reducing closes available while the new-entry kill switch is active.
+
+### Verification
+
+- All 102 tests pass and Python compilation succeeds.
+- Focused scenarios cover default blocking, stale quotes, a closed market, mismatched
+  positions, exact closing intents, full fills, and uncertain network outcomes.
+- The `paper_close.py --help` interface loads successfully.
+- Evidence: `docs/evidence/phase-7d-close-readiness-report.json`.
+
+### Safety and account impact
+
+- No Alpaca write was made while building or testing this phase.
+- Entry and close use different environment gates and both default to disabled.
+- A close cannot be prepared without a broker-confirmed OPEN lifecycle and matching
+  paper positions.
+
+### Next task
+
+After the opening gate, run the fresh entry preview. If it passes, execute the single
+approved paper canary, monitor the exact broker order to fill or terminal state, and
+use the close preview when the position is intentionally exited. Capture the final
+GET-only performance report for submission evidence.
+
 ## Update format for future tasks
 
 Every completed task should add an entry containing:

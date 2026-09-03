@@ -232,6 +232,8 @@ def prepare_canary(
                 if spread.direction is Direction.BULLISH
                 else "bear_put_debit_spread"
             ),
+            "underlying": spread.long_leg.underlying,
+            "right": spread.long_leg.right.value,
             "direction": spread.direction.value,
             "quantity": spread.quantity,
             "limit_debit": str(intent.limit_price),
@@ -246,6 +248,7 @@ def prepare_canary(
                     "strike": str(spread.long_leg.strike),
                     "bid": str(spread.long_leg.quote.bid),
                     "ask": str(spread.long_leg.quote.ask),
+                    "observed_at": spread.long_leg.quote.observed_at.isoformat(),
                 },
                 {
                     "action": "sell_to_open",
@@ -253,6 +256,7 @@ def prepare_canary(
                     "strike": str(spread.short_leg.strike),
                     "bid": str(spread.short_leg.quote.bid),
                     "ask": str(spread.short_leg.quote.ask),
+                    "observed_at": spread.short_leg.quote.observed_at.isoformat(),
                 },
             ],
             "alpaca_payload": intent.as_alpaca_payload(),
